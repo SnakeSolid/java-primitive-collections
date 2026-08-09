@@ -121,14 +121,14 @@ See [docs/benchmark-results.md](./docs/benchmark-results.md) for the full result
 
 | Class | Avg Speedup vs Java | Best Operation | Worst Operation |
 |-------|---------------------|----------------|-----------------|
-| `IntBitSet` | **5.40x** | iterate (20.94x) | containsAll (0.21x) |
-| `IntSet` | **1.87x** | iterate (5.53x) | containsAll (0.19x) |
-| `ObjectSet` | **0.95x** | iterate (2.47x) | containsAbsent (0.35x) |
-| `IntToIntMap` | **2.02x** | put (7.15x) | iterateEntries (0.34x) |
-| `ObjectToIntMap` | **0.85x** | put (2.07x) | iterateEntries (0.28x) |
-| `ObjectMap` | **0.55x** | put (0.92x) | iterateEntries (0.28x) |
+| `IntBitSet` | **5.46x** | iterate (27.52x) | containsAll (0.20x) |
+| `IntSet` | **1.72x** | iterate (5.70x) | containsAll (0.22x) |
+| `ObjectSet` | **0.77x** | iterate (2.62x) | containsAbsent (0.30x) |
+| `IntToIntMap` | **1.85x** | put (3.92x) | keySetIterate (0.34x) |
+| `ObjectToIntMap` | **0.82x** | put (2.24x) | iterateEntries (0.24x) |
+| `ObjectMap` | **0.54x** | put (0.88x) | getAbsent (0.27x) |
 
-**Primitive classes (`IntBitSet`, `IntSet`, `IntToIntMap`) consistently outperform their Java equivalents** thanks to zero boxing overhead. Generic object classes (`ObjectSet`, `ObjectMap`) trade some lookup speed for simpler architecture, though they match HashMap on write operations.
+**Primitive classes (`IntBitSet`, `IntSet`, `IntToIntMap`) consistently outperform their Java equivalents** thanks to zero boxing overhead. Generic object classes (`ObjectSet`, `ObjectMap`) trade some lookup speed for simpler architecture, though they are competitive on write operations.
 
 ### Running Benchmarks
 

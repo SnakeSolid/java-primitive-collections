@@ -17,10 +17,6 @@ The `core` JAR has no external runtime dependencies and can be dropped onto any 
 
 The `benchmarks` shaded JAR is self-contained (includes JMH + core) and is runnable via `java -jar`.
 
-## Distribution
-
-The `core` JAR has no external runtime dependencies. It can be dropped onto any classpath with a Java 21+ runtime.
-
 ## Running Benchmarks
 
 ```bash
