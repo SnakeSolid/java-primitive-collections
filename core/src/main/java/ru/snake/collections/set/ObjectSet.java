@@ -72,7 +72,9 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	 */
 	public ObjectSet(int initialCapacity) {
 		if (initialCapacity < 0) {
-			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
+			throw new IllegalArgumentException(
+				"initialCapacity: " + initialCapacity
+			);
 		}
 		int cap = tableSizeFor(initialCapacity);
 		keys = new Object[cap];
@@ -93,16 +95,13 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	public boolean add0(E element) {
 		Objects.requireNonNull(element, "element must not be null");
 
-		int mask = keys.length - 1;
-		int index = hash(element) & mask;
-
-		while (occupied.get(index)) {
-			if (Objects.equals(keys[index], element)) {
-				return false;
-			}
-			index = (index + 1) & mask;
+		int result = find(element);
+		if (result >= 0) {
+			return false;
 		}
 
+		// element not found – decode the first empty slot and insert directly
+		int index = -result - 1;
 		occupied.set(index);
 		keys[index] = element;
 		size++;
@@ -294,12 +293,9 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (!(o instanceof java.util.Set<?> that))
-			return false;
-		if (that.size() != this.size())
-			return false;
+		if (this == o) return true;
+		if (!(o instanceof java.util.Set<?> that)) return false;
+		if (that.size() != this.size()) return false;
 		return containsAll(that);
 	}
 
@@ -346,7 +342,14 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	}
 
 	/**
-	 * Find the table index for the given element, or -1 if not found.
+	 * Find the table index for the given element, or encode the first empty slot.
+	 *
+	 * <p>
+	 * Returns a non-negative index if the element is found. If not found,
+	 * returns {@code -(firstEmpty + 1)}, where {@code firstEmpty} is the index
+	 * of the first empty slot encountered during the linear probe. The caller can
+	 * recover the insertion point as {@code -returnValue - 1}.
+	 * </p>
 	 */
 	private int find(Object element) {
 		int mask = keys.length - 1;
@@ -358,7 +361,8 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 			}
 			index = (index + 1) & mask;
 		}
-		return -1;
+		// element not found; index is the first empty slot
+		return -(index + 1);
 	}
 
 	/**

@@ -100,7 +100,9 @@ public final class IntSet extends AbstractSet<Integer> {
 	 */
 	public IntSet(int initialCapacity) {
 		if (initialCapacity < 0) {
-			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
+			throw new IllegalArgumentException(
+				"initialCapacity: " + initialCapacity
+			);
 		}
 		int cap = tableSizeFor(initialCapacity);
 		keys = new int[cap];
@@ -138,9 +140,9 @@ public final class IntSet extends AbstractSet<Integer> {
 		int key = keyOf(element);
 		int bit = bitOf(element);
 
-		int index = find(key);
-		if (index >= 0) {
-			// Slot exists - just set the bit
+		int result = find(key);
+		if (result >= 0) {
+			int index = result;
 			if ((values[index] & bit) != 0) {
 				return false; // already present
 			}
@@ -149,11 +151,14 @@ public final class IntSet extends AbstractSet<Integer> {
 			return true;
 		}
 
-		// Insert new slot
-		index = insertSlot(key, bit);
+		// key not found – decode the first empty slot and insert directly
+		int index = -result - 1;
+		keys[index] = key;
+		values[index] = bit;
+		occupiedCount++;
 		size++;
 
-		// Resize if load factor exceeded (count live occupied slots)
+		// Resize if load factor exceeded
 		if (occupiedCount > (int) (keys.length * LOAD_FACTOR)) {
 			resize(keys.length * 2);
 		}
@@ -300,13 +305,14 @@ public final class IntSet extends AbstractSet<Integer> {
 	@Override
 	public boolean retainAll(Collection<?> c) {
 		boolean changed = false;
-		// Collect indices of slots that become completely empty so we can
-		// run backward-shift on them.
-		java.util.ArrayList<Integer> emptySlots = new java.util.ArrayList<>();
 
+		// Scan slots in descending order. When a slot becomes completely
+		// empty, clear it and shift backward immediately. This is safe
+		// because we iterate from high to low, and shiftBack only moves
+		// entries from higher indices into the hole – those higher indices
+		// have already been processed in this loop.
 		for (int i = keys.length - 1; i >= 0; i--) {
-			if (keys[i] == -1)
-				continue;
+			if (keys[i] == -1) continue;
 			int base = keys[i];
 			int word = values[i];
 			int newWord = word;
@@ -321,24 +327,12 @@ public final class IntSet extends AbstractSet<Integer> {
 				word &= ~(1 << bit);
 			}
 			if (newWord == 0) {
-				// Slot becomes empty — mark it and schedule backward-shift
-				emptySlots.add(i);
+				keys[i] = -1;
+				values[i] = 0;
+				occupiedCount--;
+				shiftBack(i);
 			} else {
 				values[i] = newWord;
-			}
-		}
-
-		// Clear empty slots and shift chains backward.
-		// Process from highest table index first so that shifts
-		// for lower indices don't overwrite entries shifted by
-		// higher-index shifts.
-		for (int i = 0; i < emptySlots.size(); i++) {
-			int slot = emptySlots.get(i);
-			if (keys[slot] != -1) {
-				keys[slot] = -1;
-				values[slot] = 0;
-				occupiedCount--;
-				shiftBack(slot);
 			}
 		}
 		return changed;
@@ -346,12 +340,9 @@ public final class IntSet extends AbstractSet<Integer> {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (!(o instanceof java.util.Set<?> that))
-			return false;
-		if (that.size() != this.size())
-			return false;
+		if (this == o) return true;
+		if (!(o instanceof java.util.Set<?> that)) return false;
+		if (that.size() != this.size()) return false;
 		return containsAll(that);
 	}
 
@@ -386,8 +377,7 @@ public final class IntSet extends AbstractSet<Integer> {
 			int word = values[i];
 			while (word != 0) {
 				int bit = Integer.numberOfTrailingZeros(word);
-				if (!first)
-					sb.append(", ");
+				if (!first) sb.append(", ");
 				sb.append(base + bit);
 				first = false;
 				word &= ~(1 << bit);
@@ -409,14 +399,21 @@ public final class IntSet extends AbstractSet<Integer> {
 	}
 
 	/**
-	 * Find the table index for the given key, or -1 if not found.
+	 * Find the table index for the given key, or encode the first empty slot.
+	 *
+	 * <p>
+	 * Returns a non-negative index if the key is found. If not found, returns
+	 * {@code -(firstEmpty + 1)}, where {@code firstEmpty} is the index of the
+	 * first empty slot encountered during the linear probe. The caller can
+	 * recover the insertion point as {@code -returnValue - 1}.
+	 * </p>
 	 *
 	 * <p>
 	 * Linear-probe through occupied slots. A slot is occupied if
 	 * {@code keys[index] != -1} (the sentinel {@code -1} denotes empty slots;
 	 * this is safe because valid keys have their lower 5 bits cleared).
-	 * Backward-shift deletion ensures chains never have gaps, so we stop at the
-	 * first empty slot.
+	 * Backward-shift deletion ensures chains never have gaps, so the first
+	 * empty slot is the correct insertion point.
 	 * </p>
 	 */
 	private int find(int key) {
@@ -429,26 +426,8 @@ public final class IntSet extends AbstractSet<Integer> {
 			}
 			index = (index + 1) & mask;
 		}
-		return -1;
-	}
-
-	/**
-	 * Insert a new key-value slot into the table using linear probing.
-	 *
-	 * @return the index where the entry was placed
-	 */
-	private int insertSlot(int key, int value) {
-		int mask = keys.length - 1;
-		int index = hash(key) & mask;
-
-		while (keys[index] != -1) {
-			index = (index + 1) & mask;
-		}
-
-		keys[index] = key;
-		values[index] = value;
-		occupiedCount++;
-		return index;
+		// key not found; index is the first empty slot
+		return -(index + 1);
 	}
 
 	/**

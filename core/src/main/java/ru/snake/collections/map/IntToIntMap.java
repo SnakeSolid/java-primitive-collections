@@ -75,7 +75,9 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	 */
 	public IntToIntMap(int initialCapacity) {
 		if (initialCapacity < 0) {
-			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
+			throw new IllegalArgumentException(
+				"initialCapacity: " + initialCapacity
+			);
 		}
 		int cap = tableSizeFor(initialCapacity);
 		keys = new int[cap];
@@ -99,18 +101,16 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	 *         no mapping (use {@link #containsKey} to disambiguate)
 	 */
 	public int put(int key, int value) {
-		int mask = keys.length - 1;
-		int index = hash(key) & mask;
-
-		while (occupied.get(index)) {
-			if (keys[index] == key) {
-				int old = values[index];
-				values[index] = value;
-				return old;
-			}
-			index = (index + 1) & mask;
+		int result = find(key);
+		if (result >= 0) {
+			int index = result;
+			int old = values[index];
+			values[index] = value;
+			return old;
 		}
 
+		// key not found – decode the first empty slot and insert directly
+		int index = -result - 1;
 		occupied.set(index);
 		keys[index] = key;
 		values[index] = value;
@@ -337,7 +337,10 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 
 	@Override
 	public void putAll(Map<? extends Integer, ? extends Integer> map) {
-		for (Map.Entry<? extends Integer, ? extends Integer> e : map.entrySet()) {
+		for (Map.Entry<
+			? extends Integer,
+			? extends Integer
+		> e : map.entrySet()) {
 			put(e.getKey(), e.getValue());
 		}
 	}
@@ -375,6 +378,24 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 			@Override
 			public void clear() {
 				IntToIntMap.this.clear();
+			}
+
+			@Override
+			public boolean retainAll(Collection<?> c) {
+				boolean changed = false;
+				for (int i = keys.length - 1; i >= 0; i--) {
+					if (occupied.get(i)) {
+						if (!c.contains(keys[i])) {
+							occupied.clear(i);
+							keys[i] = 0;
+							values[i] = 0;
+							size--;
+							shiftBack(i);
+							changed = true;
+						}
+					}
+				}
+				return changed;
 			}
 
 			@Override
@@ -428,7 +449,9 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 					return false;
 				}
 				int index = find((Integer) e.getKey());
-				return (index >= 0 && Objects.equals(values[index], e.getValue()));
+				return (
+					index >= 0 && Objects.equals(values[index], e.getValue())
+				);
 			}
 
 			@Override
@@ -462,7 +485,9 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 
 			@Override
 			public Iterator<Map.Entry<Integer, Integer>> iterator() {
-				ArrayList<Map.Entry<Integer, Integer>> list = new ArrayList<>(size);
+				ArrayList<Map.Entry<Integer, Integer>> list = new ArrayList<>(
+					size
+				);
 				for (int i = 0; i < keys.length; i++) {
 					if (occupied.get(i)) {
 						list.add(new IntIntEntry(keys[i], values[i]));
@@ -484,7 +509,9 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	}
 
 	@Override
-	public void replaceAll(BiFunction<? super Integer, ? super Integer, ? extends Integer> function) {
+	public void replaceAll(
+		BiFunction<? super Integer, ? super Integer, ? extends Integer> function
+	) {
 		Objects.requireNonNull(function);
 		for (int i = 0; i < keys.length; i++) {
 			if (!occupied.get(i)) {
@@ -501,7 +528,10 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	@Override
 	public Integer computeIfAbsent(
 		Integer key,
-		java.util.function.Function<? super Integer, ? extends Integer> mappingFunction
+		java.util.function.Function<
+			? super Integer,
+			? extends Integer
+		> mappingFunction
 	) {
 		Objects.requireNonNull(mappingFunction);
 		if (key == null) {
@@ -522,7 +552,11 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	@Override
 	public Integer computeIfPresent(
 		Integer key,
-		BiFunction<? super Integer, ? super Integer, ? extends Integer> remappingFunction
+		BiFunction<
+			? super Integer,
+			? super Integer,
+			? extends Integer
+		> remappingFunction
 	) {
 		Objects.requireNonNull(remappingFunction);
 		if (key == null) {
@@ -546,8 +580,14 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	}
 
 	@Override
-	public Integer
-			compute(Integer key, BiFunction<? super Integer, ? super Integer, ? extends Integer> remappingFunction) {
+	public Integer compute(
+		Integer key,
+		BiFunction<
+			? super Integer,
+			? super Integer,
+			? extends Integer
+		> remappingFunction
+	) {
 		Objects.requireNonNull(remappingFunction);
 		if (key == null) {
 			throw new NullPointerException();
@@ -573,7 +613,11 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	public Integer merge(
 		Integer key,
 		Integer value,
-		BiFunction<? super Integer, ? super Integer, ? extends Integer> remappingFunction
+		BiFunction<
+			? super Integer,
+			? super Integer,
+			? extends Integer
+		> remappingFunction
 	) {
 		Objects.requireNonNull(remappingFunction);
 		if (key == null || value == null) {
@@ -614,7 +658,14 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	}
 
 	/**
-	 * Find the table index for the given key, or -1 if not found.
+	 * Find the table index for the given key, or encode the first empty slot.
+	 *
+	 * <p>
+	 * Returns a non-negative index if the key is found. If not found, returns
+	 * {@code -(firstEmpty + 1)}, where {@code firstEmpty} is the index of the
+	 * first empty slot encountered during the linear probe. The caller can
+	 * recover the insertion point as {@code -returnValue - 1}.
+	 * </p>
 	 */
 	private int find(int key) {
 		int mask = keys.length - 1;
@@ -626,7 +677,8 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 			}
 			index = (index + 1) & mask;
 		}
-		return -1;
+		// key not found; index is the first empty slot
+		return -(index + 1);
 	}
 
 	/**
@@ -792,7 +844,10 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 			if (!(o instanceof Map.Entry<?, ?> e)) {
 				return false;
 			}
-			return (Objects.equals(key, e.getKey()) && Objects.equals(value, e.getValue()));
+			return (
+				Objects.equals(key, e.getKey()) &&
+				Objects.equals(value, e.getValue())
+			);
 		}
 
 		@Override
