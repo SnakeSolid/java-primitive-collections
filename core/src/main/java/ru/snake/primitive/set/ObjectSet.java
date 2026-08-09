@@ -40,7 +40,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	private static final float LOAD_FACTOR = 0.75f;
 
 	/** Keys array. */
-	private Object[] keys;
+	private E[] keys;
 
 	/** Number of live elements. */
 	private int size;
@@ -66,12 +66,13 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	 * @throws IllegalArgumentException
 	 *             if {@code initialCapacity} is negative
 	 */
+	@SuppressWarnings("unchecked")
 	public ObjectSet(int initialCapacity) {
 		if (initialCapacity < 0) {
 			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
 		}
 		int cap = tableSizeFor(initialCapacity);
-		keys = new Object[cap];
+		keys = (E[]) new Object[cap];
 	}
 
 	// ------------------------------------------------------------------
@@ -166,8 +167,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	public void putAll(ObjectSet<? extends E> other) {
 		for (int i = 0; i < other.keys.length; i++) {
 			if (other.keys[i] != null) {
-				@SuppressWarnings("unchecked")
-				E k = (E) other.keys[i];
+				E k = other.keys[i];
 				add0(k);
 			}
 		}
@@ -219,8 +219,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 		ArrayList<E> list = new ArrayList<>(size);
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] != null) {
-				@SuppressWarnings("unchecked")
-				E e = (E) keys[i];
+				E e = keys[i];
 				list.add(e);
 			}
 		}
@@ -370,7 +369,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 				break;
 			}
 
-			Object key = keys[next];
+			E key = keys[next];
 			int rehash = hash(key) & mask;
 
 			// The entry at 'next' can be shifted back into 'hole' iff its
@@ -396,13 +395,14 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	/**
 	 * Resize the table to a new capacity.
 	 */
+	@SuppressWarnings("unchecked")
 	private void resize(int newCapacity) {
 		if (newCapacity > MAX_CAPACITY) {
 			return;
 		}
-		Object[] oldKeys = keys;
 
-		keys = new Object[newCapacity];
+		E[] oldKeys = keys;
+		keys = (E[]) new Object[newCapacity];
 		size = 0;
 
 		int mask = newCapacity - 1;
@@ -410,7 +410,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 			if (oldKeys[i] == null) {
 				continue;
 			}
-			Object k = oldKeys[i];
+			E k = oldKeys[i];
 			int index = hash(k) & mask;
 			while (keys[index] != null) {
 				index = (index + 1) & mask;

@@ -43,10 +43,10 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	private static final float LOAD_FACTOR = 0.75f;
 
 	/** Keys array. */
-	private Object[] keys;
+	private K[] keys;
 
 	/** Values array — parallel to {@code keys}. */
-	private Object[] values;
+	private V[] values;
 
 	/** Number of live key-value mappings. */
 	private int size;
@@ -72,13 +72,14 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	 * @throws IllegalArgumentException
 	 *             if {@code initialCapacity} is negative
 	 */
+	@SuppressWarnings("unchecked")
 	public ObjectMap(int initialCapacity) {
 		if (initialCapacity < 0) {
 			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
 		}
 		int cap = tableSizeFor(initialCapacity);
-		keys = new Object[cap];
-		values = new Object[cap];
+		keys = (K[]) new Object[cap];
+		values = (V[]) new Object[cap];
 	}
 
 	// ------------------------------------------------------------------
@@ -105,8 +106,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		int result = find(key);
 		if (result >= 0) {
 			int index = result;
-			@SuppressWarnings("unchecked")
-			V old = (V) values[index];
+			V old = values[index];
 			values[index] = value;
 			return old;
 		}
@@ -133,12 +133,11 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	 * @return the value, or {@code null} if no mapping exists (use
 	 *         {@link #containsKey} to disambiguate)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public V get(Object key) {
 		Objects.requireNonNull(key, "key must not be null");
 		int index = find(key);
-		return index < 0 ? null : (V) values[index];
+		return index < 0 ? null : values[index];
 	}
 
 	/**
@@ -151,14 +150,13 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	 *            the value to return if no mapping exists
 	 * @return the value, or {@code defaultValue} if no mapping exists
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public V getOrDefault(Object key, V defaultValue) {
 		if (key == null) {
 			return defaultValue;
 		}
 		int index = find(key);
-		return index < 0 ? defaultValue : (V) values[index];
+		return index < 0 ? defaultValue : values[index];
 	}
 
 	/**
@@ -219,15 +217,17 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 
 	private V remove0(Object key) {
 		int index = find(key);
+
 		if (index < 0) {
 			return null;
 		}
-		@SuppressWarnings("unchecked")
-		V old = (V) values[index];
+
+		V old = values[index];
 		size--;
 		keys[index] = null;
 		values[index] = null;
 		shiftBack(index);
+
 		return old;
 	}
 
@@ -333,15 +333,16 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 				return changed;
 			}
 
-			@SuppressWarnings("unchecked")
 			@Override
 			public Iterator<K> iterator() {
 				ArrayList<K> list = new ArrayList<>(size);
+
 				for (int i = 0; i < keys.length; i++) {
 					if (keys[i] != null) {
-						list.add((K) keys[i]);
+						list.add(keys[i]);
 					}
 				}
+
 				return list.iterator();
 			}
 		};
@@ -355,13 +356,12 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 				return size;
 			}
 
-			@SuppressWarnings("unchecked")
 			@Override
 			public Iterator<V> iterator() {
 				ArrayList<V> list = new ArrayList<>(size);
 				for (int i = 0; i < keys.length; i++) {
 					if (keys[i] != null) {
-						list.add((V) values[i]);
+						list.add(values[i]);
 					}
 				}
 				return list.iterator();
@@ -421,13 +421,14 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			@Override
 			public Iterator<Map.Entry<K, V>> iterator() {
 				ArrayList<Map.Entry<K, V>> list = new ArrayList<>(size);
+
 				for (int i = 0; i < keys.length; i++) {
 					if (keys[i] != null) {
-						@SuppressWarnings("unchecked")
-						Map.Entry<K, V> entry = new KeyValueEntry((K) keys[i], (V) values[i]);
+						Map.Entry<K, V> entry = new KeyValueEntry(keys[i], values[i]);
 						list.add(entry);
 					}
 				}
+
 				return list.iterator();
 			}
 		};
@@ -438,10 +439,8 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		Objects.requireNonNull(action, "action must not be null");
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] != null) {
-				@SuppressWarnings("unchecked")
-				K k = (K) keys[i];
-				@SuppressWarnings("unchecked")
-				V v = (V) values[i];
+				K k = keys[i];
+				V v = values[i];
 				action.accept(k, v);
 			}
 		}
@@ -454,10 +453,8 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			if (keys[i] == null) {
 				continue;
 			}
-			@SuppressWarnings("unchecked")
-			K k = (K) keys[i];
-			@SuppressWarnings("unchecked")
-			V v = (V) values[i];
+			K k = keys[i];
+			V v = values[i];
 			V result = function.apply(k, v);
 			if (result == null) {
 				throw new NullPointerException("function must not return null");
@@ -466,14 +463,13 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public V computeIfAbsent(K key, java.util.function.Function<? super K, ? extends V> mappingFunction) {
 		Objects.requireNonNull(key, "key must not be null");
 		Objects.requireNonNull(mappingFunction, "mappingFunction must not be null");
 		int index = find(key);
 		if (index >= 0) {
-			return (V) values[index];
+			return values[index];
 		}
 		V newValue = mappingFunction.apply(key);
 		if (newValue == null) {
@@ -488,12 +484,14 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		Objects.requireNonNull(key, "key must not be null");
 		Objects.requireNonNull(remappingFunction, "remappingFunction must not be null");
 		int index = find(key);
+
 		if (index < 0) {
 			return null;
 		}
-		@SuppressWarnings("unchecked")
-		V current = (V) values[index];
+
+		V current = values[index];
 		V newValue = remappingFunction.apply(key, current);
+
 		if (newValue == null) {
 			size--;
 			keys[index] = null;
@@ -501,7 +499,9 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			shiftBack(index);
 			return null;
 		}
+
 		values[index] = newValue;
+
 		return newValue;
 	}
 
@@ -510,9 +510,9 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		Objects.requireNonNull(key, "key must not be null");
 		Objects.requireNonNull(remappingFunction, "remappingFunction must not be null");
 		int index = find(key);
-		@SuppressWarnings("unchecked")
-		V current = index >= 0 ? (V) values[index] : null;
+		V current = index >= 0 ? values[index] : null;
 		V newValue = remappingFunction.apply(key, current);
+
 		if (newValue == null) {
 			if (index >= 0) {
 				size--;
@@ -520,9 +520,12 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 				values[index] = null;
 				shiftBack(index);
 			}
+
 			return null;
 		}
+
 		put(key, newValue);
+
 		return newValue;
 	}
 
@@ -532,12 +535,14 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		Objects.requireNonNull(value, "value must not be null");
 		Objects.requireNonNull(remappingFunction, "remappingFunction must not be null");
 		int index = find(key);
+
 		if (index < 0) {
 			put(key, value);
 			return value;
 		}
-		@SuppressWarnings("unchecked")
-		V newValue = remappingFunction.apply((V) values[index], value);
+
+		V newValue = remappingFunction.apply(values[index], value);
+
 		if (newValue == null) {
 			size--;
 			keys[index] = null;
@@ -545,7 +550,9 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			shiftBack(index);
 			return null;
 		}
+
 		values[index] = newValue;
+
 		return newValue;
 	}
 
@@ -599,7 +606,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 				break;
 			}
 
-			Object key = keys[next];
+			K key = keys[next];
 			int rehash = hash(key) & mask;
 
 			// The entry at 'next' can be shifted back into 'hole' iff its
@@ -628,15 +635,16 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	// Resizing
 	// ------------------------------------------------------------------
 
+	@SuppressWarnings("unchecked")
 	private void resize(int newCapacity) {
 		if (newCapacity > MAX_CAPACITY) {
 			return;
 		}
-		Object[] oldKeys = keys;
-		Object[] oldValues = values;
+		K[] oldKeys = keys;
+		V[] oldValues = values;
 
-		keys = new Object[newCapacity];
-		values = new Object[newCapacity];
+		keys = (K[]) new Object[newCapacity];
+		values = (V[]) new Object[newCapacity];
 		size = 0;
 
 		int mask = newCapacity - 1;
@@ -644,8 +652,8 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			if (oldKeys[i] == null) {
 				continue;
 			}
-			Object k = oldKeys[i];
-			Object v = oldValues[i];
+			K k = oldKeys[i];
+			V v = oldValues[i];
 			int index = hash(k) & mask;
 			while (keys[index] != null) {
 				index = (index + 1) & mask;

@@ -42,7 +42,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 	private static final float LOAD_FACTOR = 0.75f;
 
 	/** Keys array. */
-	private Object[] keys;
+	private K[] keys;
 
 	/** Values array — parallel to {@code keys}. */
 	private int[] values;
@@ -71,12 +71,13 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 	 * @throws IllegalArgumentException
 	 *             if {@code initialCapacity} is negative
 	 */
+	@SuppressWarnings("unchecked")
 	public ObjectToIntMap(int initialCapacity) {
 		if (initialCapacity < 0) {
 			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
 		}
 		int cap = tableSizeFor(initialCapacity);
-		keys = new Object[cap];
+		keys = (K[]) new Object[cap];
 		values = new int[cap];
 	}
 
@@ -251,8 +252,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 	public void putAll(ObjectToIntMap<? extends K> other) {
 		for (int i = 0; i < other.keys.length; i++) {
 			if (other.keys[i] != null) {
-				@SuppressWarnings("unchecked")
-				K k = (K) other.keys[i];
+				K k = other.keys[i];
 				putInt(k, other.values[i]);
 			}
 		}
@@ -400,13 +400,12 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 				return changed;
 			}
 
-			@SuppressWarnings("unchecked")
 			@Override
 			public Iterator<K> iterator() {
 				ArrayList<K> list = new ArrayList<>(size);
 				for (int i = 0; i < keys.length; i++) {
 					if (keys[i] != null) {
-						list.add((K) keys[i]);
+						list.add(keys[i]);
 					}
 				}
 				return list.iterator();
@@ -483,13 +482,12 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 				ObjectToIntMap.this.clear();
 			}
 
-			@SuppressWarnings("unchecked")
 			@Override
 			public Iterator<Map.Entry<K, Integer>> iterator() {
 				ArrayList<Map.Entry<K, Integer>> list = new ArrayList<>(size);
 				for (int i = 0; i < keys.length; i++) {
 					if (keys[i] != null) {
-						list.add(new KeyValueEntry((K) keys[i], values[i]));
+						list.add(new KeyValueEntry(keys[i], values[i]));
 					}
 				}
 				return list.iterator();
@@ -502,8 +500,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 		Objects.requireNonNull(action, "action must not be null");
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] != null) {
-				@SuppressWarnings("unchecked")
-				K k = (K) keys[i];
+				K k = keys[i];
 				action.accept(k, values[i]);
 			}
 		}
@@ -516,12 +513,14 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 			if (keys[i] == null) {
 				continue;
 			}
-			@SuppressWarnings("unchecked")
-			K k = (K) keys[i];
+
+			K k = keys[i];
 			Integer result = function.apply(k, values[i]);
+
 			if (result == null) {
 				throw new NullPointerException("function must not return null");
 			}
+
 			values[i] = result;
 		}
 	}
@@ -659,7 +658,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 				break;
 			}
 
-			Object key = keys[next];
+			K key = keys[next];
 			int rehash = hash(key) & mask;
 
 			// The entry at 'next' can be shifted back into 'hole' iff its
@@ -688,14 +687,15 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 	// Resizing
 	// ------------------------------------------------------------------
 
+	@SuppressWarnings("unchecked")
 	private void resize(int newCapacity) {
 		if (newCapacity > MAX_CAPACITY) {
 			return;
 		}
-		Object[] oldKeys = keys;
+		K[] oldKeys = keys;
 		int[] oldValues = values;
 
-		keys = new Object[newCapacity];
+		keys = (K[]) new Object[newCapacity];
 		values = new int[newCapacity];
 		size = 0;
 
@@ -704,7 +704,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 			if (oldKeys[i] == null) {
 				continue;
 			}
-			Object k = oldKeys[i];
+			K k = oldKeys[i];
 			int v = oldValues[i];
 			int index = hash(k) & mask;
 			while (keys[index] != null) {
