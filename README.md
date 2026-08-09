@@ -1,4 +1,4 @@
-# Simple Collections
+# Primitive Collections
 
 Lightweight collections for Java — no dependencies, no boxing overhead.
 
