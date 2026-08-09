@@ -2,6 +2,7 @@ package ru.snake.collections.set;
 
 import java.util.AbstractSet;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
@@ -14,6 +15,14 @@ import java.util.Objects;
  * key and the bottom 5 bits select a single bit within the map value. One map
  * slot ({@code int}) can therefore hold up to 32 elements that share the same
  * 27-bit prefix.
+ * </p>
+ *
+ * <p>
+ * Slot occupancy is tracked directly in the {@code keys} array: a slot is
+ * occupied if {@code keys[index] != -1} and empty if {@code keys[index] == -1}.
+ * This sentinel is safe because valid keys have their lower 5 bits cleared
+ * ({@code element & 0xFFFFFFE0}), so {@code -1} ({@code 0xFFFFFFFF}) can never
+ * be a valid key.
  * </p>
  *
  * <p>
@@ -45,7 +54,11 @@ public final class IntSet extends AbstractSet<Integer> {
      */
     private static final float LOAD_FACTOR = 0.75f;
 
-    /** Hash table keys - top 27 bits of each stored element. */
+    /**
+     * Hash table keys - top 27 bits of each stored element.
+     * A value of {@code -1} denotes an empty slot (safe sentinel because
+     * valid keys always have their lower 5 bits cleared).
+     */
     private int[] keys;
 
     /**
@@ -56,9 +69,10 @@ public final class IntSet extends AbstractSet<Integer> {
     private int[] values;
 
     /**
-     * Tracks which table slots hold at least one element.
+     * Tracks how many table slots are occupied (keys[i] != -1). Used for
+     * load-factor checks and resizing.
      */
-    private IntBitSet occupied;
+    private int occupiedCount;
 
     /** Number of distinct elements in the set. */
     private int size;
@@ -93,7 +107,8 @@ public final class IntSet extends AbstractSet<Integer> {
         int cap = tableSizeFor(initialCapacity);
         keys = new int[cap];
         values = new int[cap];
-        occupied = new IntBitSet(cap);
+        Arrays.fill(keys, -1);
+        occupiedCount = 0;
     }
 
     // ------------------------------------------------------------------
@@ -141,7 +156,7 @@ public final class IntSet extends AbstractSet<Integer> {
         size++;
 
         // Resize if load factor exceeded (count live occupied slots)
-        if (occupied.size() > (int) (keys.length * LOAD_FACTOR)) {
+        if (occupiedCount > (int) (keys.length * LOAD_FACTOR)) {
             resize(keys.length * 2);
         }
 
@@ -172,9 +187,9 @@ public final class IntSet extends AbstractSet<Integer> {
         // probe-chain entries backward to keep chains intact without
         // needing tombstones.
         if (values[index] == 0) {
-            occupied.clear(index);
-            keys[index] = 0;
+            keys[index] = -1;
             values[index] = 0;
+            occupiedCount--;
             shiftBack(index);
         }
 
@@ -209,8 +224,9 @@ public final class IntSet extends AbstractSet<Integer> {
 
     @Override
     public void clear() {
-        java.util.Arrays.fill(values, 0);
-        occupied.clearAll();
+        Arrays.fill(values, 0);
+        Arrays.fill(keys, -1);
+        occupiedCount = 0;
         size = 0;
     }
 
@@ -238,7 +254,7 @@ public final class IntSet extends AbstractSet<Integer> {
      */
     private void collectAll(ArrayList<Integer> list) {
         for (int i = 0; i < keys.length; i++) {
-            if (!occupied.get(i)) {
+            if (keys[i] == -1) {
                 continue;
             }
             int base = keys[i];
@@ -291,7 +307,7 @@ public final class IntSet extends AbstractSet<Integer> {
         java.util.ArrayList<Integer> emptySlots = new java.util.ArrayList<>();
 
         for (int i = keys.length - 1; i >= 0; i--) {
-            if (!occupied.get(i)) continue;
+            if (keys[i] == -1) continue;
             int base = keys[i];
             int word = values[i];
             int newWord = word;
@@ -319,10 +335,10 @@ public final class IntSet extends AbstractSet<Integer> {
         // higher-index shifts.
         for (int i = 0; i < emptySlots.size(); i++) {
             int slot = emptySlots.get(i);
-            if (occupied.get(slot)) {
-                occupied.clear(slot);
-                keys[slot] = 0;
+            if (keys[slot] != -1) {
+                keys[slot] = -1;
                 values[slot] = 0;
+                occupiedCount--;
                 shiftBack(slot);
             }
         }
@@ -341,7 +357,7 @@ public final class IntSet extends AbstractSet<Integer> {
     public int hashCode() {
         int h = 0;
         for (int i = 0; i < keys.length; i++) {
-            if (!occupied.get(i)) {
+            if (keys[i] == -1) {
                 continue;
             }
             int base = keys[i];
@@ -361,7 +377,7 @@ public final class IntSet extends AbstractSet<Integer> {
         sb.append('[');
         boolean first = true;
         for (int i = 0; i < keys.length; i++) {
-            if (!occupied.get(i)) {
+            if (keys[i] == -1) {
                 continue;
             }
             int base = keys[i];
@@ -392,15 +408,17 @@ public final class IntSet extends AbstractSet<Integer> {
     /**
      * Find the table index for the given key, or -1 if not found.
      *
-     * <p>Linear-probe through occupied slots. A slot is occupied if it holds
-     * a live entry; backward-shift deletion ensures chains never have gaps,
-     * so we stop at the first empty slot.</p>
+     * <p>Linear-probe through occupied slots. A slot is occupied if
+     * {@code keys[index] != -1} (the sentinel {@code -1} denotes empty slots;
+     * this is safe because valid keys have their lower 5 bits cleared).
+     * Backward-shift deletion ensures chains never have gaps, so we stop at
+     * the first empty slot.</p>
      */
     private int find(int key) {
         int mask = keys.length - 1;
         int index = hash(key) & mask;
 
-        while (occupied.get(index)) {
+        while (keys[index] != -1) {
             if (keys[index] == key) {
                 return index;
             }
@@ -418,13 +436,13 @@ public final class IntSet extends AbstractSet<Integer> {
         int mask = keys.length - 1;
         int index = hash(key) & mask;
 
-        while (occupied.get(index)) {
+        while (keys[index] != -1) {
             index = (index + 1) & mask;
         }
 
-        occupied.set(index);
         keys[index] = key;
         values[index] = value;
+        occupiedCount++;
         return index;
     }
 
@@ -437,27 +455,27 @@ public final class IntSet extends AbstractSet<Integer> {
         }
         int[] oldKeys = keys;
         int[] oldValues = values;
-        IntBitSet oldOccupied = occupied;
 
         keys = new int[newCapacity];
         values = new int[newCapacity];
-        occupied = new IntBitSet(newCapacity);
+        Arrays.fill(keys, -1);
+        occupiedCount = 0;
         size = 0;
 
         int mask = newCapacity - 1;
         for (int i = 0; i < oldKeys.length; i++) {
-            if (!oldOccupied.get(i)) {
+            if (oldKeys[i] == -1) {
                 continue;
             }
             int k = oldKeys[i];
             int v = oldValues[i];
             int index = hash(k) & mask;
-            while (occupied.get(index)) {
+            while (keys[index] != -1) {
                 index = (index + 1) & mask;
             }
-            occupied.set(index);
             keys[index] = k;
             values[index] = v;
+            occupiedCount++;
             size += Integer.bitCount(v);
         }
     }
@@ -477,7 +495,7 @@ public final class IntSet extends AbstractSet<Integer> {
 
         while (true) {
             int next = (hole + 1) & mask;
-            if (!occupied.get(next)) {
+            if (keys[next] == -1) {
                 // Chain ends — nothing left to shift
                 break;
             }
@@ -492,8 +510,8 @@ public final class IntSet extends AbstractSet<Integer> {
             if (distance(rehash, hole, mask) < distance(rehash, next, mask)) {
                 keys[hole] = key;
                 values[hole] = values[next];
-                occupied.set(hole);
-                occupied.clear(next);
+                keys[next] = -1;
+                values[next] = 0;
                 hole = next;
             } else {
                 break;
@@ -531,7 +549,7 @@ public final class IntSet extends AbstractSet<Integer> {
      */
     public void putAll(IntSet other) {
         for (int i = 0; i < other.keys.length; i++) {
-            if (!other.occupied.get(i)) {
+            if (other.keys[i] == -1) {
                 continue;
             }
             int base = other.keys[i];
@@ -567,7 +585,7 @@ public final class IntSet extends AbstractSet<Integer> {
             hasMore = false;
 
             while (idx < keys.length) {
-                if (occupied.get(idx) && values[idx] != 0) {
+                if (keys[idx] != -1 && values[idx] != 0) {
                     remaining = values[idx];
                     break;
                 }

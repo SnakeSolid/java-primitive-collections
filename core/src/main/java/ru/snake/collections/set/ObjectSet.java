@@ -120,7 +120,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
         size--;
         occupied.clear(index);
         keys[index] = null;
-        rehashAll();
+        shiftBack(index);
         return true;
     }
 
@@ -264,7 +264,9 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 
     @Override
     public boolean retainAll(Collection<?> c) {
-        // Collect elements to keep, then rebuild
+        // Remove non-retained elements using backward-shift deletion.
+        // Iterate backward so that shifting earlier slots does not affect
+        // the scan of later slots.
         boolean changed = false;
         for (int i = keys.length - 1; i >= 0; i--) {
             if (occupied.get(i)) {
@@ -272,12 +274,10 @@ public final class ObjectSet<E> extends AbstractSet<E> {
                     occupied.clear(i);
                     keys[i] = null;
                     size--;
+                    shiftBack(i);
                     changed = true;
                 }
             }
-        }
-        if (changed) {
-            rehashAll();
         }
         return changed;
     }
@@ -349,28 +349,41 @@ public final class ObjectSet<E> extends AbstractSet<E> {
     }
 
     /**
-     * Rehash every live entry into a clean table.
+     * Shift probe-chain entries backward to fill the hole at {@code hole},
+     * keeping chains intact without tombstones.
      */
-    private void rehashAll() {
-        Object[] oldKeys = keys;
-        IntBitSet oldOccupied = occupied;
-
-        keys = new Object[oldKeys.length];
-        occupied = new IntBitSet(oldKeys.length);
-
+    private void shiftBack(int hole) {
         int mask = keys.length - 1;
-        for (int i = 0; i < oldKeys.length; i++) {
-            if (!oldOccupied.get(i)) {
-                continue;
+
+        while (true) {
+            int next = (hole + 1) & mask;
+            if (!occupied.get(next)) {
+                // Chain ends — nothing left to shift
+                break;
             }
-            Object k = oldKeys[i];
-            int index = hash(k) & mask;
-            while (occupied.get(index)) {
-                index = (index + 1) & mask;
+
+            Object key = keys[next];
+            int rehash = hash(key) & mask;
+
+            // The entry at 'next' can be shifted back into 'hole' iff its
+            // true hash position wraps through 'hole' before reaching 'next'.
+            if (distance(rehash, hole, mask) < distance(rehash, next, mask)) {
+                keys[hole] = key;
+                occupied.set(hole);
+                occupied.clear(next);
+                hole = next;
+            } else {
+                break;
             }
-            occupied.set(index);
-            keys[index] = k;
         }
+    }
+
+    /**
+     * Wrapping distance from {@code from} to {@code to} in a table of size
+     * {@code mask + 1}.
+     */
+    private static int distance(int from, int to, int mask) {
+        return (to - from) & mask;
     }
 
     /**

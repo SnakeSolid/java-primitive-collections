@@ -58,9 +58,9 @@ A compact hash set of `int` values. Each stored integer is split: the top 27 bit
 
 ### Internal Structure
 
-- `int[] keys` — the top 27 bits of stored elements (zeroed in empty slots)
+- `int[] keys` — the top 27 bits of stored elements; a value of `-1` denotes an empty slot (safe sentinel because valid keys have their lower 5 bits cleared)
 - `int[] values` — packed bit words; each `int` holds up to 32 elements
-- `IntBitSet occupied` — tracks which table slots hold live entries
+- `int occupiedCount` — number of occupied slots (keys[i] != -1), used for load-factor checks
 - `int size` — number of distinct elements
 
 ### Hashing
@@ -116,9 +116,9 @@ Same load factor (0.75) and doubling strategy as the maps.
 
 ### Removal Strategy
 
-Uses `rehashAll()` — clears the slot, nulls out the key reference, and
-reinserts remaining entries into a clean table. This is simpler but costs
-O(capacity) per removal.
+Same backward-shift deletion as the map classes — clears the slot and shifts
+subsequent chain entries backward, eliminating the need for tombstones
+or full rehash.
 
 ### Primitive Convenience Methods
 
@@ -278,7 +278,7 @@ Implements `Map<K, V>`. `null` keys and values throw `NullPointerException`. Use
 
 - **Capacity**: Always a power of two, starting from a default of 16, up to a maximum of `1 << 30`.
 - **Load factor**: 0.75, matching `java.util.HashMap`.
-- **Occupancy tracking**: `IntBitSet` is shared across all map and set implementations.
+- **Occupancy tracking**: `IntBitSet` is used by all map classes and `ObjectSet`. `IntSet` instead uses a `-1` sentinel in its `keys` array to track slot occupancy, eliminating the extra `int[]` backing the bitset.
 - **Removal**: All map and set classes use backward-shift deletion — cleared slots trigger a compacting scan that shifts subsequent chain entries backward, eliminating the need for tombstones or full rehash on removal.
 - **Thread safety**: None of the classes are thread-safe.
 - **IntSet compact encoding**: 27-bit key + 5-bit offset packed into hash table slots, allowing up to 32 elements per slot without extra indirection.
