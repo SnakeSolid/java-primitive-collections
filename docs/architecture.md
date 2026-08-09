@@ -147,10 +147,10 @@ An open-addressed hash map using parallel `int[]` arrays for keys and values. Co
 
 ### Internal Structure
 
-| `int[] keys` — key storage
-| `int[] values` — parallel value storage
-| `IntBitSet occupied` — tracks which table slots hold live entries
-| `int size` — number of live mappings
+- `int[] keys` - key storage
+- `int[] values` - parallel value storage
+- `IntBitSet occupied` - tracks which table slots hold live entries
+- `int size` - number of live mappings
 
 ### Hashing
 

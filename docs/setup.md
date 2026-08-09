@@ -45,16 +45,25 @@ simple-collections/
 │       └── test/java/ru/snake/collections/
 │           ├── set/
 │           │   ├── IntBitSetTest.java
+│           │   ├── IntSetShiftTest.java
 │           │   ├── IntSetTest.java
 │           │   └── ObjectSetTest.java
 │           └── map/
+│               ├── IntToIntMapShiftTest.java
 │               ├── IntToIntMapTest.java
-│               ├── ObjectToIntMapTest.java
-│               └── ObjectMapTest.java
+│               ├── ObjectMapShiftTest.java
+│               ├── ObjectMapTest.java
+│               ├── ObjectToIntMapShiftTest.java
+│               └── ObjectToIntMapTest.java
 └── benchmarks/                   # Benchmarks module — JMH micro-benchmarks
     ├── pom.xml
     └── src/main/java/ru/snake/collections/benchmark/
-        └── IntBitSetBenchmark.java
+        ├── IntBitSetBenchmark.java
+        ├── IntSetBenchmark.java
+        ├── IntToIntMapBenchmark.java
+        ├── ObjectMapBenchmark.java
+        ├── ObjectSetBenchmark.java
+        └── ObjectToIntMapBenchmark.java
 ```
 
 ## Multi-Module Structure
