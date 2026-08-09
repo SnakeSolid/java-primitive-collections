@@ -9,7 +9,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import ru.snake.collections.set.IntBitSet;
 
 /**
  * A hash map from {@code Object} keys to {@code int} values, backed by parallel
@@ -48,11 +47,6 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 	/** Values array — parallel to {@code keys}. */
 	private int[] values;
 
-	/**
-	 * Tracks which table slots hold live entries.
-	 */
-	private IntBitSet occupied;
-
 	/** Number of live key-value mappings. */
 	private int size;
 
@@ -86,7 +80,6 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 		int cap = tableSizeFor(initialCapacity);
 		keys = new Object[cap];
 		values = new int[cap];
-		occupied = new IntBitSet(cap);
 	}
 
 	// ------------------------------------------------------------------
@@ -117,7 +110,6 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 
 		// key not found – decode the first empty slot and insert directly
 		int index = -result - 1;
-		occupied.set(index);
 		keys[index] = key;
 		values[index] = value;
 		size++;
@@ -191,7 +183,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 
 	private boolean containsValue0(int value) {
 		for (int i = 0; i < keys.length; i++) {
-			if (occupied.get(i) && values[i] == value) {
+			if (keys[i] != null && values[i] == value) {
 				return true;
 			}
 		}
@@ -217,7 +209,6 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 		}
 		int old = values[index];
 		size--;
-		occupied.clear(index);
 		keys[index] = null;
 		values[index] = 0;
 		shiftBack(index);
@@ -247,11 +238,8 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 	 */
 	public void clear() {
 		for (int i = 0; i < keys.length; i++) {
-			if (occupied.get(i)) {
-				keys[i] = null;
-			}
+			keys[i] = null;
 		}
-		occupied.clearAll();
 		size = 0;
 	}
 
@@ -264,7 +252,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 	 */
 	public void putAll(ObjectToIntMap<? extends K> other) {
 		for (int i = 0; i < other.keys.length; i++) {
-			if (other.occupied.get(i)) {
+			if (other.keys[i] != null) {
 				@SuppressWarnings("unchecked")
 				K k = (K) other.keys[i];
 				putInt(k, other.values[i]);
@@ -284,8 +272,8 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 		int mask = keys.length - 1;
 		int index = hash(key) & mask;
 
-		while (occupied.get(index)) {
-			if (keys[index] != null && keys[index].equals(key)) {
+		while (keys[index] != null) {
+			if (keys[index].equals(key)) {
 				int old = values[index];
 				values[index] = v;
 				return old;
@@ -293,7 +281,6 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 			index = (index + 1) & mask;
 		}
 
-		occupied.set(index);
 		keys[index] = key;
 		values[index] = v;
 		size++;
@@ -350,7 +337,6 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 		}
 		int old = values[index];
 		size--;
-		occupied.clear(index);
 		keys[index] = null;
 		values[index] = 0;
 		shiftBack(index);
@@ -388,7 +374,6 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 					return false;
 				}
 				size--;
-				occupied.clear(index);
 				keys[index] = null;
 				values[index] = 0;
 				shiftBack(index);
@@ -404,9 +389,8 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 			public boolean retainAll(Collection<?> c) {
 				boolean changed = false;
 				for (int i = keys.length - 1; i >= 0; i--) {
-					if (occupied.get(i)) {
+					if (keys[i] != null) {
 						if (!c.contains(keys[i])) {
-							occupied.clear(i);
 							keys[i] = null;
 							values[i] = 0;
 							size--;
@@ -423,7 +407,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 			public Iterator<K> iterator() {
 				ArrayList<K> list = new ArrayList<>(size);
 				for (int i = 0; i < keys.length; i++) {
-					if (occupied.get(i)) {
+					if (keys[i] != null) {
 						list.add((K) keys[i]);
 					}
 				}
@@ -444,7 +428,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 			public Iterator<Integer> iterator() {
 				ArrayList<Integer> list = new ArrayList<>(size);
 				for (int i = 0; i < keys.length; i++) {
-					if (occupied.get(i)) {
+					if (keys[i] != null) {
 						list.add(values[i]);
 					}
 				}
@@ -498,7 +482,6 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 					return false;
 				}
 				size--;
-				occupied.clear(index);
 				keys[index] = null;
 				values[index] = 0;
 				shiftBack(index);
@@ -515,7 +498,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 			public Iterator<Map.Entry<K, Integer>> iterator() {
 				ArrayList<Map.Entry<K, Integer>> list = new ArrayList<>(size);
 				for (int i = 0; i < keys.length; i++) {
-					if (occupied.get(i)) {
+					if (keys[i] != null) {
 						list.add(new KeyValueEntry((K) keys[i], values[i]));
 					}
 				}
@@ -528,7 +511,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 	public void forEach(BiConsumer<? super K, ? super Integer> action) {
 		Objects.requireNonNull(action, "action must not be null");
 		for (int i = 0; i < keys.length; i++) {
-			if (occupied.get(i)) {
+			if (keys[i] != null) {
 				@SuppressWarnings("unchecked")
 				K k = (K) keys[i];
 				action.accept(k, values[i]);
@@ -542,7 +525,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 	) {
 		Objects.requireNonNull(function, "function must not be null");
 		for (int i = 0; i < keys.length; i++) {
-			if (!occupied.get(i)) {
+			if (keys[i] == null) {
 				continue;
 			}
 			@SuppressWarnings("unchecked")
@@ -603,7 +586,6 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 		Integer newValue = remappingFunction.apply(key, values[index]);
 		if (newValue == null) {
 			size--;
-			occupied.clear(index);
 			keys[index] = null;
 			values[index] = 0;
 			shiftBack(index);
@@ -633,7 +615,6 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 		if (newValue == null) {
 			if (index >= 0) {
 				size--;
-				occupied.clear(index);
 				keys[index] = null;
 				values[index] = 0;
 				shiftBack(index);
@@ -668,7 +649,6 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 		Integer newValue = remappingFunction.apply(values[index], value);
 		if (newValue == null) {
 			size--;
-			occupied.clear(index);
 			keys[index] = null;
 			values[index] = 0;
 			shiftBack(index);
@@ -704,8 +684,8 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 		int mask = keys.length - 1;
 		int index = hash(key) & mask;
 
-		while (occupied.get(index)) {
-			if (keys[index] != null && keys[index].equals(key)) {
+		while (keys[index] != null) {
+			if (keys[index].equals(key)) {
 				return index;
 			}
 			index = (index + 1) & mask;
@@ -723,7 +703,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 
 		while (true) {
 			int next = (hole + 1) & mask;
-			if (!occupied.get(next)) {
+			if (keys[next] == null) {
 				// Chain ends — nothing left to shift
 				break;
 			}
@@ -736,8 +716,8 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 			if (distance(rehash, hole, mask) < distance(rehash, next, mask)) {
 				keys[hole] = key;
 				values[hole] = values[next];
-				occupied.set(hole);
-				occupied.clear(next);
+				keys[next] = null;
+				values[next] = 0;
 				hole = next;
 			} else {
 				break;
@@ -763,25 +743,22 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 		}
 		Object[] oldKeys = keys;
 		int[] oldValues = values;
-		IntBitSet oldOccupied = occupied;
 
 		keys = new Object[newCapacity];
 		values = new int[newCapacity];
-		occupied = new IntBitSet(newCapacity);
 		size = 0;
 
 		int mask = newCapacity - 1;
 		for (int i = 0; i < oldKeys.length; i++) {
-			if (!oldOccupied.get(i)) {
+			if (oldKeys[i] == null) {
 				continue;
 			}
 			Object k = oldKeys[i];
 			int v = oldValues[i];
 			int index = hash(k) & mask;
-			while (occupied.get(index)) {
+			while (keys[index] != null) {
 				index = (index + 1) & mask;
 			}
-			occupied.set(index);
 			keys[index] = k;
 			values[index] = v;
 			size++;
@@ -816,7 +793,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 		sb.append('{');
 		boolean first = true;
 		for (int i = 0; i < keys.length; i++) {
-			if (!occupied.get(i)) {
+			if (keys[i] == null) {
 				continue;
 			}
 			if (!first) {
