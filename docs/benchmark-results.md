@@ -1,6 +1,6 @@
 # Benchmark Results
 
-JMH micro-benchmarks comparing each `simple-collections` class against its `java.util` equivalent.
+JMH micro-benchmarks comparing each `primitive-collections` class against its `java.util` equivalent.
 
 ## Configuration
 
@@ -191,7 +191,7 @@ JMH micro-benchmarks comparing each `simple-collections` class against its `java
 
 ## Conclusions
 
-### When to use simple-collections
+### When to use primitive-collections
 
 | Scenario | Recommended Class | Why |
 |----------|-------------------|-----|

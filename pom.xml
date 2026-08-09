@@ -4,10 +4,10 @@
 >
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>ru.snake.collections</groupId>
-	<artifactId>simple</artifactId>
+	<artifactId>primitive-collections</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<name>Simple collection library</name>
+	<name>Primitive Collections</name>
 
 	<modules>
 		<module>core</module>

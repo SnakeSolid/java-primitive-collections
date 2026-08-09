@@ -133,11 +133,11 @@ See [docs/benchmark-results.md](./docs/benchmark-results.md) for the full result
 ### Running Benchmarks
 
 ```bash
-./mvnw package && java -jar benchmarks/target/benchmarks-0.0.1-SNAPSHOT-benchmarks.jar IntBitSetBenchmark
+./mvnw package && java -jar benchmarks/target/primitive-benchmarks-0.0.1-SNAPSHOT-benchmarks.jar IntBitSetBenchmark
 ```
 
 For a quick run (1 fork, 1 warmup, 1 measurement):
 
 ```bash
-java -jar benchmarks/target/benchmarks-0.0.1-SNAPSHOT-benchmarks.jar IntBitSetBenchmark -f 1 -wi 1 -i 1
+java -jar benchmarks/target/primitive-benchmarks-0.0.1-SNAPSHOT-benchmarks.jar IntBitSetBenchmark -f 1 -wi 1 -i 1
 ```

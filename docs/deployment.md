@@ -10,8 +10,8 @@
 
 | Module | JAR | Location |
 |--------|-----|----------|
-| `core` | `core-0.0.1-SNAPSHOT.jar` | `core/target/` |
-| `benchmarks` | `benchmarks-0.0.1-SNAPSHOT-benchmarks.jar` | `benchmarks/target/` |
+| `core` | `primitive-core-0.0.1-SNAPSHOT.jar` | `core/target/` |
+| `benchmarks` | `primitive-benchmarks-0.0.1-SNAPSHOT-benchmarks.jar` | `benchmarks/target/` |
 
 The `core` JAR has no external runtime dependencies and can be dropped onto any classpath with a Java 21+ runtime.
 
@@ -20,19 +20,19 @@ The `benchmarks` shaded JAR is self-contained (includes JMH + core) and is runna
 ## Running Benchmarks
 
 ```bash
-java -jar benchmarks/target/benchmarks-0.0.1-SNAPSHOT-benchmarks.jar
+java -jar benchmarks/target/primitive-benchmarks-0.0.1-SNAPSHOT-benchmarks.jar
 ```
 
 Run a specific benchmark:
 
 ```bash
-java -jar benchmarks/target/benchmarks-0.0.1-SNAPSHOT-benchmarks.jar IntBitSetBenchmark
+java -jar benchmarks/target/primitive-benchmarks-0.0.1-SNAPSHOT-benchmarks.jar IntBitSetBenchmark
 ```
 
 Quick run (1 fork, 1 warmup, 1 measurement):
 
 ```bash
-java -jar benchmarks/target/benchmarks-0.0.1-SNAPSHOT-benchmarks.jar IntBitSetBenchmark -f 1 -wi 1 -i 1
+java -jar benchmarks/target/primitive-benchmarks-0.0.1-SNAPSHOT-benchmarks.jar IntBitSetBenchmark -f 1 -wi 1 -i 1
 ```
 
 ## Versioning

@@ -20,13 +20,13 @@
 ./mvnw package
 
 # Run benchmarks
-./mvnw package && java -jar benchmarks/target/benchmarks-0.0.1-SNAPSHOT-benchmarks.jar
+./mvnw package && java -jar benchmarks/target/primitive-benchmarks-0.0.1-SNAPSHOT-benchmarks.jar
 ```
 
 ## Project Layout
 
 ```
-simple-collections/
+primitive-collections/
 ├── pom.xml                       # Parent POM (packaging: pom)
 ├── mvnw, mvnw.cmd               # Maven wrapper
 ├── docs/                         # Documentation
@@ -70,8 +70,8 @@ simple-collections/
 
 | Module | Artifact | Purpose |
 |--------|----------|---------|
-| `core` | `ru.snake.collections:core` | Production code and unit tests |
-| `benchmarks` | `ru.snake.collections:benchmarks` | JMH benchmarks, depends on `core` |
+| `core` | `ru.snake.primitive:primitive-core` | Production code and unit tests |
+| `benchmarks` | `ru.snake.primitive:primitive-benchmarks` | JMH benchmarks, depends on `core` |
 
 ## IDE
 

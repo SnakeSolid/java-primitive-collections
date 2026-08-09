@@ -11,7 +11,7 @@
 - Classes: `PascalCase` (e.g., `IntBitSet`, `ObjectMap`)
 - Methods/variables: `camelCase`
 - Constants: `UPPER_SNAKE_CASE` with `private static final`
-- Package: `ru.snake.collections` with subpackages by collection type (`set/`, `map/`)
+- Package: `ru.snake.primitive` with subpackages by collection type (`set/`, `map/`)
 
 ## Formatting
 
@@ -27,4 +27,4 @@
 - Guard clauses at the top of methods (null checks, argument validation).
 - Keep methods short — extract helpers for non-trivial logic.
 - Classes are `final` unless designed for extension.
-- Imports: standard library (`java.*`) first, then project imports (`ru.snake.collections.*`), grouped and sorted alphabetically within each group.
+- Imports: standard library (`java.*`) first, then project imports (`ru.snake.primitive.*`), grouped and sorted alphabetically within each group.

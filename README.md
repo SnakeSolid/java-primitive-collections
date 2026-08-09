@@ -58,7 +58,7 @@ System.out.println(map2.get("Alice")); // Person{name=Alice}
 ./mvnw test
 
 # Run benchmarks
-java -jar benchmarks/target/benchmarks-0.0.1-SNAPSHOT-benchmarks.jar
+java -jar benchmarks/target/primitive-benchmarks-0.0.1-SNAPSHOT-benchmarks.jar
 ```
 
 See [docs/setup.md](docs/setup.md) for development environment details.

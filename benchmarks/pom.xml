@@ -6,17 +6,17 @@
 
 	<parent>
 		<groupId>ru.snake.collections</groupId>
-		<artifactId>simple</artifactId>
+		<artifactId>primitive-collections</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>benchmarks</artifactId>
-	<name>simple-benchmarks</name>
+	<artifactId>primitive-benchmarks</artifactId>
+	<name>Primitive Collections Benchmarks</name>
 
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>core</artifactId>
+			<artifactId>primitive-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

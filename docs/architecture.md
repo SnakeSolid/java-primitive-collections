@@ -10,19 +10,19 @@ The project is a multi-module Maven build:
 
 | Module | Artifact | Description |
 |--------|----------|-------------|
-| `core` | `ru.snake.collections:core` | Production code and unit tests |
-| `benchmarks` | `ru.snake.collections:benchmarks` | JMH micro-benchmarks; depends on `core` |
+| `core` | `ru.snake.primitive:primitive-core` | Production code and unit tests |
+| `benchmarks` | `ru.snake.primitive:primitive-benchmarks` | JMH micro-benchmarks; depends on `core` |
 
 Benchmark code is isolated in its own module to keep JMH dependencies out of the core library and to produce a separate runnable JAR.
 
 ## Package Structure
 
-All classes live under `ru.snake.collections` and are split by collection type:
+All classes live under `ru.snake.primitive` and are split by collection type:
 
 | Package | Contents |
 |---------|----------|
-| `ru.snake.collections.set` | `IntBitSet`, `IntSet`, `ObjectSet` |
-| `ru.snake.collections.map` | `IntToIntMap`, `ObjectToIntMap`, `ObjectMap` |
+| `ru.snake.primitive.set` | `IntBitSet`, `IntSet`, `ObjectSet` |
+| `ru.snake.primitive.map` | `IntToIntMap`, `ObjectToIntMap`, `ObjectMap` |
 
 The `set` and `map` packages keep related types grouped and make it easy to add new collection categories (e.g., `list`, `queue`) without cluttering a single package.
 
