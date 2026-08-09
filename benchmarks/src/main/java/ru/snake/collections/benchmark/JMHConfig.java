@@ -16,8 +16,8 @@ import org.openjdk.jmh.annotations.Warmup;
  */
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
-@Warmup(iterations = 2, time = 2)
-@Measurement(iterations = 3, time = 2)
+@Warmup(iterations = 3, time = 2)
+@Measurement(iterations = 4, time = 2)
 @Fork(value = 1, jvmArgsAppend = { "-Xms512m", "-Xmx512m" })
 public abstract class JMHConfig {
 }
