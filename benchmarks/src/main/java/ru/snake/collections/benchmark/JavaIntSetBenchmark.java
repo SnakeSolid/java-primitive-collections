@@ -1,9 +1,9 @@
 package ru.snake.collections.benchmark;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
@@ -11,13 +11,13 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.infra.Blackhole;
 
-import ru.snake.collections.set.IntBitSet;
-
 /**
- * Benchmarks for {@link IntBitSet}.
+ * Benchmarks for {@link HashSet}&lt;{@link Integer}&gt;.
  * <p>
- * Java's {@code Set<Integer>} baseline is provided by
- * {@link JavaIntSetBenchmark}.
+ * Extracted from {@link IntBitSetBenchmark} and {@link IntSetBenchmark} so the
+ * Java-side of the comparison is not duplicated across primitive-set
+ * benchmarks. Use this class as a standalone baseline for {@code Set<Integer>}
+ * performance.
  * </p>
  *
  * <p>
@@ -25,10 +25,10 @@ import ru.snake.collections.set.IntBitSet;
  * </p>
  * 
  * <pre>{@code
- *   mvn package -pl benchmarks && java -jar benchmarks/target/benchmarks-0.0.1-SNAPSHOT-benchmarks.jar IntBitSetBenchmark
+ *   mvn package -pl benchmarks && java -jar benchmarks/target/benchmarks-0.0.1-SNAPSHOT-benchmarks.jar JavaIntSetBenchmark
  * }</pre>
  */
-public class IntBitSetBenchmark extends JMHConfig {
+public class JavaIntSetBenchmark extends JMHConfig {
 
 	@State(Scope.Benchmark)
 	public static class BenchmarkState {
@@ -39,11 +39,11 @@ public class IntBitSetBenchmark extends JMHConfig {
 		@Param({ "25" })
 		public int fillPercent;
 
-		public IntBitSet intBitSet;
+		public Set<Integer> hashSet;
 
-		/** Random keys that are present in both sets. */
+		/** Random keys that are present in the set. */
 		public int[] presentKeys;
-		/** Random keys that are absent from both sets. */
+		/** Random keys that are absent from the set. */
 		public int[] absentKeys;
 		/** Random keys used for insertion benchmarks. */
 		public int[] insertKeys;
@@ -54,8 +54,7 @@ public class IntBitSetBenchmark extends JMHConfig {
 			int absentCount = Math.max(count / 2, 100);
 			int insertCount = Math.min(count, 1000);
 
-			intBitSet = new IntBitSet(capacity);
-
+			hashSet = new HashSet<>(capacity);
 			ThreadLocalRandom rng = ThreadLocalRandom.current();
 
 			int[] allIndices = BenchmarkDataHelper.sequentialIndices(capacity);
@@ -64,7 +63,7 @@ public class IntBitSetBenchmark extends JMHConfig {
 			presentKeys = new int[count];
 			for (int i = 0; i < count; i++) {
 				int key = allIndices[i];
-				intBitSet.set(key);
+				hashSet.add(key);
 				presentKeys[i] = key;
 			}
 
@@ -83,15 +82,11 @@ public class IntBitSetBenchmark extends JMHConfig {
 	@State(Scope.Thread)
 	public static class ThreadState {
 
-		public IntBitSet intBitSet;
 		public Set<Integer> hashSet;
 
 		@Setup
 		public void setup(BenchmarkState state) {
-			intBitSet = new IntBitSet(state.capacity);
-			for (int k : state.presentKeys) {
-				intBitSet.set(k);
-			}
+			hashSet = new HashSet<>(state.hashSet);
 		}
 	}
 
@@ -100,10 +95,10 @@ public class IntBitSetBenchmark extends JMHConfig {
 	// ------------------------------------------------------------------
 
 	@Benchmark
-	public long intBitSet_containsPresent(BenchmarkState data) {
+	public long hashSet_containsPresent(BenchmarkState data) {
 		long hits = 0;
 		for (int key : data.presentKeys) {
-			if (data.intBitSet.contains(key)) {
+			if (data.hashSet.contains(key)) {
 				hits++;
 			}
 		}
@@ -115,10 +110,10 @@ public class IntBitSetBenchmark extends JMHConfig {
 	// ------------------------------------------------------------------
 
 	@Benchmark
-	public long intBitSet_containsAbsent(BenchmarkState data) {
+	public long hashSet_containsAbsent(BenchmarkState data) {
 		long hits = 0;
 		for (int key : data.absentKeys) {
-			if (data.intBitSet.contains(key)) {
+			if (data.hashSet.contains(key)) {
 				hits++;
 			}
 		}
@@ -130,10 +125,10 @@ public class IntBitSetBenchmark extends JMHConfig {
 	// ------------------------------------------------------------------
 
 	@Benchmark
-	public boolean intBitSet_add(ThreadState ts, BenchmarkState data) {
+	public boolean hashSet_add(ThreadState ts, BenchmarkState data) {
 		boolean changed = false;
 		for (int key : data.insertKeys) {
-			if (ts.intBitSet.add(key)) {
+			if (ts.hashSet.add(key)) {
 				changed = true;
 			}
 		}
@@ -145,10 +140,10 @@ public class IntBitSetBenchmark extends JMHConfig {
 	// ------------------------------------------------------------------
 
 	@Benchmark
-	public boolean intBitSet_remove(ThreadState ts, BenchmarkState data) {
+	public boolean hashSet_remove(ThreadState ts, BenchmarkState data) {
 		boolean changed = false;
 		for (int key : data.presentKeys) {
-			if (ts.intBitSet.remove(key)) {
+			if (ts.hashSet.remove(key)) {
 				changed = true;
 			}
 		}
@@ -160,9 +155,9 @@ public class IntBitSetBenchmark extends JMHConfig {
 	// ------------------------------------------------------------------
 
 	@Benchmark
-	public long intBitSet_iterate(BenchmarkState data) {
+	public long hashSet_iterate(BenchmarkState data) {
 		long sum = 0;
-		for (Integer v : data.intBitSet) {
+		for (Integer v : data.hashSet) {
 			sum += v;
 		}
 		return sum;
@@ -173,12 +168,10 @@ public class IntBitSetBenchmark extends JMHConfig {
 	// ------------------------------------------------------------------
 
 	@Benchmark
-	public void intBitSet_iterateRemoveAll(ThreadState ts, BenchmarkState data) {
-		ts.intBitSet.clear();
-		for (int k : data.presentKeys) {
-			ts.intBitSet.set(k);
-		}
-		Iterator<Integer> it = ts.intBitSet.iterator();
+	public void hashSet_iterateRemoveAll(ThreadState ts, BenchmarkState data) {
+		ts.hashSet.clear();
+		ts.hashSet.addAll(data.hashSet);
+		Iterator<Integer> it = ts.hashSet.iterator();
 		while (it.hasNext()) {
 			it.next();
 			it.remove();
@@ -191,7 +184,7 @@ public class IntBitSetBenchmark extends JMHConfig {
 	// ------------------------------------------------------------------
 
 	@Benchmark
-	public boolean intBitSet_containsAll(BenchmarkState data) {
-		return data.intBitSet.containsAll(data.intBitSet);
+	public boolean hashSet_containsAll(BenchmarkState data) {
+		return data.hashSet.containsAll(data.hashSet);
 	}
 }

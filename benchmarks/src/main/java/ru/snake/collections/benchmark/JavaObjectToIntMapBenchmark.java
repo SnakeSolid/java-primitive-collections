@@ -9,13 +9,13 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.infra.Blackhole;
-import ru.snake.collections.map.ObjectToIntMap;
 
 /**
- * Benchmarks for {@link ObjectToIntMap}.
+ * Benchmarks for {@link HashMap}&lt;{@link String}, {@link Integer}&gt;.
  * <p>
- * Java's {@code Map<String, Integer>} baseline is provided by
- * {@link JavaObjectToIntMapBenchmark}.
+ * Extracted from {@link ObjectToIntMapBenchmark} so the Java-side of the
+ * comparison is not duplicated. Use this class as a standalone baseline for
+ * {@code Map<String, Integer>} performance.
  * </p>
  *
  * <p>
@@ -23,10 +23,10 @@ import ru.snake.collections.map.ObjectToIntMap;
  * </p>
  * 
  * <pre>{@code
- *   mvn package -pl benchmarks && java -jar benchmarks/target/benchmarks-0.0.1-SNAPSHOT-benchmarks.jar ObjectToIntMapBenchmark
+ *   mvn package -pl benchmarks && java -jar benchmarks/target/benchmarks-0.0.1-SNAPSHOT-benchmarks.jar JavaObjectToIntMapBenchmark
  * }</pre>
  */
-public class ObjectToIntMapBenchmark extends JMHConfig {
+public class JavaObjectToIntMapBenchmark extends JMHConfig {
 
 	@State(Scope.Benchmark)
 	public static class BenchmarkState {
@@ -37,11 +37,11 @@ public class ObjectToIntMapBenchmark extends JMHConfig {
 		@Param({ "25" })
 		public int fillPercent;
 
-		public ObjectToIntMap<String> objToIntMap;
+		public HashMap<String, Integer> hashMap;
 
-		/** Keys that are present in both maps. */
+		/** Keys that are present in the map. */
 		public String[] presentKeys;
-		/** Keys that are absent from both maps. */
+		/** Keys that are absent from the map. */
 		public String[] absentKeys;
 		/** Keys used for insertion benchmarks. */
 		public String[] insertKeys;
@@ -54,8 +54,7 @@ public class ObjectToIntMapBenchmark extends JMHConfig {
 			int absentCount = Math.max(count / 2, 100);
 			int insertCount = Math.min(count, 1000);
 
-			objToIntMap = new ObjectToIntMap<>(capacity);
-
+			hashMap = new HashMap<>(capacity);
 			ThreadLocalRandom rng = ThreadLocalRandom.current();
 
 			int[] allIndices = BenchmarkDataHelper.spacedIndices(capacity);
@@ -66,9 +65,9 @@ public class ObjectToIntMapBenchmark extends JMHConfig {
 			for (int i = 0; i < count; i++) {
 				int value = allIndices[i];
 				String key = "key_" + value;
-				objToIntMap.putInt(key, value);
 				presentKeys[i] = key;
 				presentValues[i] = value;
+				hashMap.put(key, value);
 			}
 
 			absentKeys = new String[absentCount];
@@ -86,15 +85,11 @@ public class ObjectToIntMapBenchmark extends JMHConfig {
 	@State(Scope.Thread)
 	public static class ThreadState {
 
-		public ObjectToIntMap<String> objToIntMap;
 		public HashMap<String, Integer> hashMap;
 
 		@Setup
 		public void setup(BenchmarkState state) {
-			objToIntMap = new ObjectToIntMap<>(state.capacity);
-			for (int i = 0; i < state.presentKeys.length; i++) {
-				objToIntMap.putInt(state.presentKeys[i], state.presentValues[i]);
-			}
+			hashMap = new HashMap<>(state.hashMap);
 		}
 	}
 
@@ -103,10 +98,13 @@ public class ObjectToIntMapBenchmark extends JMHConfig {
 	// ------------------------------------------------------------------
 
 	@Benchmark
-	public long objToIntMap_getPresent(BenchmarkState data) {
+	public long hashMap_getPresent(BenchmarkState data) {
 		long sum = 0;
 		for (String key : data.presentKeys) {
-			sum += data.objToIntMap.getInt(key);
+			Integer v = data.hashMap.get(key);
+			if (v != null) {
+				sum += v;
+			}
 		}
 		return sum;
 	}
@@ -116,10 +114,13 @@ public class ObjectToIntMapBenchmark extends JMHConfig {
 	// ------------------------------------------------------------------
 
 	@Benchmark
-	public long objToIntMap_getAbsent(BenchmarkState data) {
+	public long hashMap_getAbsent(BenchmarkState data) {
 		long sum = 0;
 		for (String key : data.absentKeys) {
-			sum += data.objToIntMap.getInt(key);
+			Integer v = data.hashMap.get(key);
+			if (v != null) {
+				sum += v;
+			}
 		}
 		return sum;
 	}
@@ -129,9 +130,9 @@ public class ObjectToIntMapBenchmark extends JMHConfig {
 	// ------------------------------------------------------------------
 
 	@Benchmark
-	public void objToIntMap_put(ThreadState ts, BenchmarkState data) {
+	public void hashMap_put(ThreadState ts, BenchmarkState data) {
 		for (int i = 0; i < data.insertKeys.length; i++) {
-			ts.objToIntMap.putInt(data.insertKeys[i], data.presentValues[i]);
+			ts.hashMap.put(data.insertKeys[i], data.presentValues[i]);
 		}
 		Blackhole.consumeCPU(1);
 	}
@@ -141,9 +142,9 @@ public class ObjectToIntMapBenchmark extends JMHConfig {
 	// ------------------------------------------------------------------
 
 	@Benchmark
-	public void objToIntMap_remove(ThreadState ts, BenchmarkState data) {
+	public void hashMap_remove(ThreadState ts, BenchmarkState data) {
 		for (String key : data.presentKeys) {
-			ts.objToIntMap.delete(key);
+			ts.hashMap.remove(key);
 		}
 		Blackhole.consumeCPU(1);
 	}
@@ -153,9 +154,9 @@ public class ObjectToIntMapBenchmark extends JMHConfig {
 	// ------------------------------------------------------------------
 
 	@Benchmark
-	public long objToIntMap_iterateEntries(BenchmarkState data) {
+	public long hashMap_iterateEntries(BenchmarkState data) {
 		long sum = 0;
-		for (Map.Entry<String, Integer> e : data.objToIntMap.entrySet()) {
+		for (Map.Entry<String, Integer> e : data.hashMap.entrySet()) {
 			sum += e.getValue();
 		}
 		return sum;
@@ -167,8 +168,8 @@ public class ObjectToIntMapBenchmark extends JMHConfig {
 
 	@SuppressWarnings("unused")
 	@Benchmark
-	public void objToIntMap_keySetIterate(BenchmarkState data) {
-		for (String key : data.objToIntMap.keySet()) {
+	public void hashMap_keySetIterate(BenchmarkState data) {
+		for (String key : data.hashMap.keySet()) {
 			Blackhole.consumeCPU(1);
 		}
 	}

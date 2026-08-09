@@ -1,23 +1,20 @@
 package ru.snake.collections.benchmark;
 
-import java.util.Iterator;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.infra.Blackhole;
-
-import ru.snake.collections.set.IntBitSet;
 
 /**
- * Benchmarks for {@link IntBitSet}.
+ * Benchmarks for {@link HashMap}&lt;{@link Integer}, {@link Integer}&gt;.
  * <p>
- * Java's {@code Set<Integer>} baseline is provided by
- * {@link JavaIntSetBenchmark}.
+ * Extracted from {@link IntToIntMapBenchmark} so the Java-side of the
+ * comparison is not duplicated. Use this class as a standalone baseline for
+ * {@code Map<Integer, Integer>} performance.
  * </p>
  *
  * <p>
@@ -25,10 +22,10 @@ import ru.snake.collections.set.IntBitSet;
  * </p>
  * 
  * <pre>{@code
- *   mvn package -pl benchmarks && java -jar benchmarks/target/benchmarks-0.0.1-SNAPSHOT-benchmarks.jar IntBitSetBenchmark
+ *   mvn package -pl benchmarks && java -jar benchmarks/target/benchmarks-0.0.1-SNAPSHOT-benchmarks.jar JavaIntMapBenchmark
  * }</pre>
  */
-public class IntBitSetBenchmark extends JMHConfig {
+public class JavaIntMapBenchmark extends JMHConfig {
 
 	@State(Scope.Benchmark)
 	public static class BenchmarkState {
@@ -39,11 +36,11 @@ public class IntBitSetBenchmark extends JMHConfig {
 		@Param({ "25" })
 		public int fillPercent;
 
-		public IntBitSet intBitSet;
+		public Map<Integer, Integer> hashMap;
 
-		/** Random keys that are present in both sets. */
+		/** Random keys that are present in the map. */
 		public int[] presentKeys;
-		/** Random keys that are absent from both sets. */
+		/** Random keys that are absent from the map. */
 		public int[] absentKeys;
 		/** Random keys used for insertion benchmarks. */
 		public int[] insertKeys;
@@ -54,17 +51,16 @@ public class IntBitSetBenchmark extends JMHConfig {
 			int absentCount = Math.max(count / 2, 100);
 			int insertCount = Math.min(count, 1000);
 
-			intBitSet = new IntBitSet(capacity);
-
+			hashMap = new HashMap<>(capacity);
 			ThreadLocalRandom rng = ThreadLocalRandom.current();
 
-			int[] allIndices = BenchmarkDataHelper.sequentialIndices(capacity);
+			int[] allIndices = BenchmarkDataHelper.spacedIndices(capacity);
 			BenchmarkDataHelper.shuffle(allIndices, rng);
 
 			presentKeys = new int[count];
 			for (int i = 0; i < count; i++) {
 				int key = allIndices[i];
-				intBitSet.set(key);
+				hashMap.put(key, key);
 				presentKeys[i] = key;
 			}
 
@@ -83,115 +79,100 @@ public class IntBitSetBenchmark extends JMHConfig {
 	@State(Scope.Thread)
 	public static class ThreadState {
 
-		public IntBitSet intBitSet;
-		public Set<Integer> hashSet;
+		public Map<Integer, Integer> hashMap;
 
 		@Setup
 		public void setup(BenchmarkState state) {
-			intBitSet = new IntBitSet(state.capacity);
-			for (int k : state.presentKeys) {
-				intBitSet.set(k);
-			}
+			hashMap = new HashMap<>(state.hashMap);
 		}
 	}
 
 	// ------------------------------------------------------------------
-	// Contains — key is present
+	// Get — key is present
 	// ------------------------------------------------------------------
 
 	@Benchmark
-	public long intBitSet_containsPresent(BenchmarkState data) {
-		long hits = 0;
-		for (int key : data.presentKeys) {
-			if (data.intBitSet.contains(key)) {
-				hits++;
-			}
-		}
-		return hits;
-	}
-
-	// ------------------------------------------------------------------
-	// Contains — key is absent
-	// ------------------------------------------------------------------
-
-	@Benchmark
-	public long intBitSet_containsAbsent(BenchmarkState data) {
-		long hits = 0;
-		for (int key : data.absentKeys) {
-			if (data.intBitSet.contains(key)) {
-				hits++;
-			}
-		}
-		return hits;
-	}
-
-	// ------------------------------------------------------------------
-	// Add — unique elements
-	// ------------------------------------------------------------------
-
-	@Benchmark
-	public boolean intBitSet_add(ThreadState ts, BenchmarkState data) {
-		boolean changed = false;
-		for (int key : data.insertKeys) {
-			if (ts.intBitSet.add(key)) {
-				changed = true;
-			}
-		}
-		return changed;
-	}
-
-	// ------------------------------------------------------------------
-	// Remove — elements that are present
-	// ------------------------------------------------------------------
-
-	@Benchmark
-	public boolean intBitSet_remove(ThreadState ts, BenchmarkState data) {
-		boolean changed = false;
-		for (int key : data.presentKeys) {
-			if (ts.intBitSet.remove(key)) {
-				changed = true;
-			}
-		}
-		return changed;
-	}
-
-	// ------------------------------------------------------------------
-	// Iterate over all elements
-	// ------------------------------------------------------------------
-
-	@Benchmark
-	public long intBitSet_iterate(BenchmarkState data) {
+	public long hashMap_getPresent(BenchmarkState data) {
 		long sum = 0;
-		for (Integer v : data.intBitSet) {
-			sum += v;
+		for (int key : data.presentKeys) {
+			Integer v = data.hashMap.get(key);
+			if (v != null) {
+				sum += v;
+			}
 		}
 		return sum;
 	}
 
 	// ------------------------------------------------------------------
-	// Iterator with remove()
+	// Get — key is absent
 	// ------------------------------------------------------------------
 
 	@Benchmark
-	public void intBitSet_iterateRemoveAll(ThreadState ts, BenchmarkState data) {
-		ts.intBitSet.clear();
-		for (int k : data.presentKeys) {
-			ts.intBitSet.set(k);
+	public long hashMap_getAbsent(BenchmarkState data) {
+		long hits = 0;
+		for (int key : data.absentKeys) {
+			if (data.hashMap.get(key) != null) {
+				hits++;
+			}
 		}
-		Iterator<Integer> it = ts.intBitSet.iterator();
-		while (it.hasNext()) {
-			it.next();
-			it.remove();
-		}
-		Blackhole.consumeCPU(1);
+		return hits;
 	}
 
 	// ------------------------------------------------------------------
-	// Bulk containsAll
+	// Put — new key-value pairs
 	// ------------------------------------------------------------------
 
 	@Benchmark
-	public boolean intBitSet_containsAll(BenchmarkState data) {
-		return data.intBitSet.containsAll(data.intBitSet);
+	public int hashMap_put(ThreadState ts, BenchmarkState data) {
+		int sum = 0;
+		for (int key : data.insertKeys) {
+			Integer v = ts.hashMap.put(key, key);
+			if (v != null) {
+				sum += v;
+			}
+		}
+		return sum;
+	}
+
+	// ------------------------------------------------------------------
+	// Remove — keys that are present
+	// ------------------------------------------------------------------
+
+	@Benchmark
+	public int hashMap_remove(ThreadState ts, BenchmarkState data) {
+		int sum = 0;
+		for (int key : data.presentKeys) {
+			Integer v = ts.hashMap.remove(key);
+			if (v != null) {
+				sum += v;
+			}
+		}
+		return sum;
+	}
+
+	// ------------------------------------------------------------------
+	// Iterate over entrySet — sum values
+	// ------------------------------------------------------------------
+
+	@Benchmark
+	public long hashMap_iterateEntries(BenchmarkState data) {
+		long sum = 0;
+		for (Map.Entry<Integer, Integer> entry : data.hashMap.entrySet()) {
+			sum += entry.getValue();
+		}
+		return sum;
+	}
+
+	// ------------------------------------------------------------------
+	// Iterate over keySet
+	// ------------------------------------------------------------------
+
+	@Benchmark
+	public long hashMap_keySetIterate(BenchmarkState data) {
+		long sum = 0;
+		for (Integer key : data.hashMap.keySet()) {
+			sum += key;
+		}
+		return sum;
 	}
 }

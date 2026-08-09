@@ -62,14 +62,30 @@ All benchmarks use throughput mode (ops/ms), 25% fill factor, and capacities of 
 
 ### Benchmark Inventory
 
-| Benchmark | Custom Class | Java Reference |
-|-----------|-------------|----------------|
-| `IntBitSetBenchmark` | `IntBitSet` | `HashSet<Integer>` |
-| `IntSetBenchmark` | `IntSet` | `HashSet<Integer>` |
-| `ObjectSetBenchmark` | `ObjectSet<String>` | `HashSet<String>` |
-| `IntToIntMapBenchmark` | `IntToIntMap` | `HashMap<Integer, Integer>` |
-| `ObjectToIntMapBenchmark` | `ObjectToIntMap<String>` | `HashMap<String, Integer>` |
-| `ObjectMapBenchmark` | `ObjectMap<String, String>` | `HashMap<String, String>` |
+The benchmark suite is split into two groups:
+
+**Project-collection benchmarks** — test the library's own classes (with Java collections still instantiated in the state for `containsAll` cross-type comparisons):
+
+| Benchmark | Class Under Test |
+|-----------|---------------|
+| `IntBitSetBenchmark` | `IntBitSet` |
+| `IntSetBenchmark` | `IntSet` |
+| `ObjectSetBenchmark` | `ObjectSet<String>` |
+| `IntToIntMapBenchmark` | `IntToIntMap` |
+| `ObjectToIntMapBenchmark` | `ObjectToIntMap<String>` |
+| `ObjectMapBenchmark` | `ObjectMap<String, String>` |
+
+**Java-collections benchmarks** — standalone baselines for the JDK classes, extracted from the project benchmarks to avoid duplication:
+
+| Benchmark | JDK Class |
+|-----------|----------|
+| `JavaIntSetBenchmark` | `HashSet<Integer>` / `Set<Integer>` |
+| `JavaStringSetBenchmark` | `HashSet<String>` / `Set<String>` |
+| `JavaIntMapBenchmark` | `HashMap<Integer, Integer>` / `Map<Integer, Integer>` |
+| `JavaStringMapBenchmark` | `HashMap<String, String>` / `Map<String, String>` |
+| `JavaObjectToIntMapBenchmark` | `HashMap<String, Integer>` |
+
+All benchmarks share a common configuration inherited from `JMHConfig` (throughput mode, 25% fill factor, capacities of 10 K / 100 K / 1 M). Setup helpers are centralized in `BenchmarkDataHelper`.
 
 ### Operations Benchmarked per Class
 
