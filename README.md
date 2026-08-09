@@ -71,6 +71,7 @@ See [docs/setup.md](docs/setup.md) for development environment details.
 | Architecture & design | [docs/architecture.md](docs/architecture.md) |
 | Coding conventions | [docs/coding-standards.md](docs/coding-standards.md) |
 | Testing strategy | [docs/testing.md](docs/testing.md) |
+| Benchmark results | [docs/benchmark-results.md](docs/benchmark-results.md) |
 | Deployment & operations | [docs/deployment.md](docs/deployment.md) |
 
 ## Maintainer
