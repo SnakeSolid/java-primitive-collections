@@ -356,7 +356,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 		int index = hash(element) & mask;
 
 		while (occupied.get(index)) {
-			if (Objects.equals(keys[index], element)) {
+			if (keys[index] != null && keys[index].equals(element)) {
 				return index;
 			}
 			index = (index + 1) & mask;

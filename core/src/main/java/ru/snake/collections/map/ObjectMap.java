@@ -205,7 +205,9 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 
 	private boolean containsValue0(Object value) {
 		for (int i = 0; i < keys.length; i++) {
-			if (occupied.get(i) && Objects.equals(values[i], value)) {
+			if (
+				occupied.get(i) && values[i] != null && values[i].equals(value)
+			) {
 				return true;
 			}
 		}
@@ -403,7 +405,10 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 				}
 				int index = find(e.getKey());
 				return (
-					index >= 0 && Objects.equals(values[index], e.getValue())
+					index >= 0 &&
+					(values[index] == null
+						? e.getValue() == null
+						: values[index].equals(e.getValue()))
 				);
 			}
 
@@ -420,7 +425,11 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 					return false;
 				}
 				// Only remove if the value also matches
-				if (!Objects.equals(values[index], e.getValue())) {
+				if (
+					values[index] == null
+						? e.getValue() != null
+						: !values[index].equals(e.getValue())
+				) {
 					return false;
 				}
 				size--;
@@ -629,7 +638,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		int index = hash(key) & mask;
 
 		while (occupied.get(index)) {
-			if (Objects.equals(keys[index], key)) {
+			if (keys[index] != null && keys[index].equals(key)) {
 				return index;
 			}
 			index = (index + 1) & mask;
@@ -802,8 +811,10 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 				return false;
 			}
 			return (
-				Objects.equals(key, e.getKey()) &&
-				Objects.equals(value, e.getValue())
+				(key == null ? e.getKey() == null : key.equals(e.getKey())) &&
+				(value == null
+					? e.getValue() == null
+					: value.equals(e.getValue()))
 			);
 		}
 
