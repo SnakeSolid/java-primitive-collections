@@ -9,7 +9,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import ru.snake.collections.set.IntBitSet;
 
 /**
  * A generic hash map from {@code K} keys to {@code V} values, backed by
@@ -49,11 +48,6 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	/** Values array — parallel to {@code keys}. */
 	private Object[] values;
 
-	/**
-	 * Tracks which table slots hold live entries.
-	 */
-	private IntBitSet occupied;
-
 	/** Number of live key-value mappings. */
 	private int size;
 
@@ -80,14 +74,11 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	 */
 	public ObjectMap(int initialCapacity) {
 		if (initialCapacity < 0) {
-			throw new IllegalArgumentException(
-				"initialCapacity: " + initialCapacity
-			);
+			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
 		}
 		int cap = tableSizeFor(initialCapacity);
 		keys = new Object[cap];
 		values = new Object[cap];
-		occupied = new IntBitSet(cap);
 	}
 
 	// ------------------------------------------------------------------
@@ -122,7 +113,6 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 
 		// key not found – decode the first empty slot and insert directly
 		int index = -result - 1;
-		occupied.set(index);
 		keys[index] = key;
 		values[index] = value;
 		size++;
@@ -205,9 +195,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 
 	private boolean containsValue0(Object value) {
 		for (int i = 0; i < keys.length; i++) {
-			if (
-				occupied.get(i) && values[i] != null && values[i].equals(value)
-			) {
+			if (keys[i] != null && values[i] != null && values[i].equals(value)) {
 				return true;
 			}
 		}
@@ -237,7 +225,6 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		@SuppressWarnings("unchecked")
 		V old = (V) values[index];
 		size--;
-		occupied.clear(index);
 		keys[index] = null;
 		values[index] = null;
 		shiftBack(index);
@@ -270,12 +257,9 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	@Override
 	public void clear() {
 		for (int i = 0; i < keys.length; i++) {
-			if (occupied.get(i)) {
-				keys[i] = null;
-				values[i] = null;
-			}
+			keys[i] = null;
+			values[i] = null;
 		}
-		occupied.clearAll();
 		size = 0;
 	}
 
@@ -321,7 +305,6 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 					return false;
 				}
 				size--;
-				occupied.clear(index);
 				keys[index] = null;
 				values[index] = null;
 				shiftBack(index);
@@ -337,9 +320,8 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			public boolean retainAll(Collection<?> c) {
 				boolean changed = false;
 				for (int i = keys.length - 1; i >= 0; i--) {
-					if (occupied.get(i)) {
+					if (keys[i] != null) {
 						if (!c.contains(keys[i])) {
-							occupied.clear(i);
 							keys[i] = null;
 							values[i] = null;
 							size--;
@@ -356,7 +338,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			public Iterator<K> iterator() {
 				ArrayList<K> list = new ArrayList<>(size);
 				for (int i = 0; i < keys.length; i++) {
-					if (occupied.get(i)) {
+					if (keys[i] != null) {
 						list.add((K) keys[i]);
 					}
 				}
@@ -378,7 +360,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			public Iterator<V> iterator() {
 				ArrayList<V> list = new ArrayList<>(size);
 				for (int i = 0; i < keys.length; i++) {
-					if (occupied.get(i)) {
+					if (keys[i] != null) {
 						list.add((V) values[i]);
 					}
 				}
@@ -404,12 +386,8 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 					return false;
 				}
 				int index = find(e.getKey());
-				return (
-					index >= 0 &&
-					(values[index] == null
-						? e.getValue() == null
-						: values[index].equals(e.getValue()))
-				);
+				return (index >= 0
+						&& (values[index] == null ? e.getValue() == null : values[index].equals(e.getValue())));
 			}
 
 			@Override
@@ -425,15 +403,10 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 					return false;
 				}
 				// Only remove if the value also matches
-				if (
-					values[index] == null
-						? e.getValue() != null
-						: !values[index].equals(e.getValue())
-				) {
+				if (values[index] == null ? e.getValue() != null : !values[index].equals(e.getValue())) {
 					return false;
 				}
 				size--;
-				occupied.clear(index);
 				keys[index] = null;
 				values[index] = null;
 				shiftBack(index);
@@ -449,12 +422,9 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			public Iterator<Map.Entry<K, V>> iterator() {
 				ArrayList<Map.Entry<K, V>> list = new ArrayList<>(size);
 				for (int i = 0; i < keys.length; i++) {
-					if (occupied.get(i)) {
+					if (keys[i] != null) {
 						@SuppressWarnings("unchecked")
-						Map.Entry<K, V> entry = new KeyValueEntry(
-							(K) keys[i],
-							(V) values[i]
-						);
+						Map.Entry<K, V> entry = new KeyValueEntry((K) keys[i], (V) values[i]);
 						list.add(entry);
 					}
 				}
@@ -467,7 +437,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	public void forEach(BiConsumer<? super K, ? super V> action) {
 		Objects.requireNonNull(action, "action must not be null");
 		for (int i = 0; i < keys.length; i++) {
-			if (occupied.get(i)) {
+			if (keys[i] != null) {
 				@SuppressWarnings("unchecked")
 				K k = (K) keys[i];
 				@SuppressWarnings("unchecked")
@@ -478,12 +448,10 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	}
 
 	@Override
-	public void replaceAll(
-		BiFunction<? super K, ? super V, ? extends V> function
-	) {
+	public void replaceAll(BiFunction<? super K, ? super V, ? extends V> function) {
 		Objects.requireNonNull(function, "function must not be null");
 		for (int i = 0; i < keys.length; i++) {
-			if (!occupied.get(i)) {
+			if (keys[i] == null) {
 				continue;
 			}
 			@SuppressWarnings("unchecked")
@@ -500,39 +468,25 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public V computeIfAbsent(
-		K key,
-		java.util.function.Function<? super K, ? extends V> mappingFunction
-	) {
+	public V computeIfAbsent(K key, java.util.function.Function<? super K, ? extends V> mappingFunction) {
 		Objects.requireNonNull(key, "key must not be null");
-		Objects.requireNonNull(
-			mappingFunction,
-			"mappingFunction must not be null"
-		);
+		Objects.requireNonNull(mappingFunction, "mappingFunction must not be null");
 		int index = find(key);
 		if (index >= 0) {
 			return (V) values[index];
 		}
 		V newValue = mappingFunction.apply(key);
 		if (newValue == null) {
-			throw new NullPointerException(
-				"mappingFunction must not return null"
-			);
+			throw new NullPointerException("mappingFunction must not return null");
 		}
 		put(key, newValue);
 		return newValue;
 	}
 
 	@Override
-	public V computeIfPresent(
-		K key,
-		BiFunction<? super K, ? super V, ? extends V> remappingFunction
-	) {
+	public V computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
 		Objects.requireNonNull(key, "key must not be null");
-		Objects.requireNonNull(
-			remappingFunction,
-			"remappingFunction must not be null"
-		);
+		Objects.requireNonNull(remappingFunction, "remappingFunction must not be null");
 		int index = find(key);
 		if (index < 0) {
 			return null;
@@ -542,7 +496,6 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		V newValue = remappingFunction.apply(key, current);
 		if (newValue == null) {
 			size--;
-			occupied.clear(index);
 			keys[index] = null;
 			values[index] = null;
 			shiftBack(index);
@@ -553,15 +506,9 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	}
 
 	@Override
-	public V compute(
-		K key,
-		BiFunction<? super K, ? super V, ? extends V> remappingFunction
-	) {
+	public V compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
 		Objects.requireNonNull(key, "key must not be null");
-		Objects.requireNonNull(
-			remappingFunction,
-			"remappingFunction must not be null"
-		);
+		Objects.requireNonNull(remappingFunction, "remappingFunction must not be null");
 		int index = find(key);
 		@SuppressWarnings("unchecked")
 		V current = index >= 0 ? (V) values[index] : null;
@@ -569,7 +516,6 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		if (newValue == null) {
 			if (index >= 0) {
 				size--;
-				occupied.clear(index);
 				keys[index] = null;
 				values[index] = null;
 				shiftBack(index);
@@ -581,17 +527,10 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	}
 
 	@Override
-	public V merge(
-		K key,
-		V value,
-		BiFunction<? super V, ? super V, ? extends V> remappingFunction
-	) {
+	public V merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
 		Objects.requireNonNull(key, "key must not be null");
 		Objects.requireNonNull(value, "value must not be null");
-		Objects.requireNonNull(
-			remappingFunction,
-			"remappingFunction must not be null"
-		);
+		Objects.requireNonNull(remappingFunction, "remappingFunction must not be null");
 		int index = find(key);
 		if (index < 0) {
 			put(key, value);
@@ -601,7 +540,6 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		V newValue = remappingFunction.apply((V) values[index], value);
 		if (newValue == null) {
 			size--;
-			occupied.clear(index);
 			keys[index] = null;
 			values[index] = null;
 			shiftBack(index);
@@ -637,8 +575,8 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		int mask = keys.length - 1;
 		int index = hash(key) & mask;
 
-		while (occupied.get(index)) {
-			if (keys[index] != null && keys[index].equals(key)) {
+		while (keys[index] != null) {
+			if (keys[index].equals(key)) {
 				return index;
 			}
 			index = (index + 1) & mask;
@@ -656,7 +594,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 
 		while (true) {
 			int next = (hole + 1) & mask;
-			if (!occupied.get(next)) {
+			if (keys[next] == null) {
 				// Chain ends — nothing left to shift
 				break;
 			}
@@ -669,8 +607,8 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			if (distance(rehash, hole, mask) < distance(rehash, next, mask)) {
 				keys[hole] = key;
 				values[hole] = values[next];
-				occupied.set(hole);
-				occupied.clear(next);
+				keys[next] = null;
+				values[next] = null;
 				hole = next;
 			} else {
 				break;
@@ -696,25 +634,22 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		}
 		Object[] oldKeys = keys;
 		Object[] oldValues = values;
-		IntBitSet oldOccupied = occupied;
 
 		keys = new Object[newCapacity];
 		values = new Object[newCapacity];
-		occupied = new IntBitSet(newCapacity);
 		size = 0;
 
 		int mask = newCapacity - 1;
 		for (int i = 0; i < oldKeys.length; i++) {
-			if (!oldOccupied.get(i)) {
+			if (oldKeys[i] == null) {
 				continue;
 			}
 			Object k = oldKeys[i];
 			Object v = oldValues[i];
 			int index = hash(k) & mask;
-			while (occupied.get(index)) {
+			while (keys[index] != null) {
 				index = (index + 1) & mask;
 			}
-			occupied.set(index);
 			keys[index] = k;
 			values[index] = v;
 			size++;
@@ -749,7 +684,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		sb.append('{');
 		boolean first = true;
 		for (int i = 0; i < keys.length; i++) {
-			if (!occupied.get(i)) {
+			if (keys[i] == null) {
 				continue;
 			}
 			if (!first) {
@@ -810,12 +745,8 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			if (!(o instanceof Map.Entry<?, ?> e)) {
 				return false;
 			}
-			return (
-				(key == null ? e.getKey() == null : key.equals(e.getKey())) &&
-				(value == null
-					? e.getValue() == null
-					: value.equals(e.getValue()))
-			);
+			return ((key == null ? e.getKey() == null : key.equals(e.getKey()))
+					&& (value == null ? e.getValue() == null : value.equals(e.getValue())));
 		}
 
 		@Override

@@ -73,9 +73,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 	 */
 	public ObjectToIntMap(int initialCapacity) {
 		if (initialCapacity < 0) {
-			throw new IllegalArgumentException(
-				"initialCapacity: " + initialCapacity
-			);
+			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
 		}
 		int cap = tableSizeFor(initialCapacity);
 		keys = new Object[cap];
@@ -454,10 +452,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 					return false;
 				}
 				int index = find(e.getKey());
-				return (
-					index >= 0 &&
-					Objects.equals(Integer.valueOf(values[index]), e.getValue())
-				);
+				return (index >= 0 && Objects.equals(Integer.valueOf(values[index]), e.getValue()));
 			}
 
 			@Override
@@ -473,12 +468,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 					return false;
 				}
 				// Only remove if the value also matches
-				if (
-					!Objects.equals(
-						Integer.valueOf(values[index]),
-						e.getValue()
-					)
-				) {
+				if (!Objects.equals(Integer.valueOf(values[index]), e.getValue())) {
 					return false;
 				}
 				size--;
@@ -520,9 +510,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 	}
 
 	@Override
-	public void replaceAll(
-		BiFunction<? super K, ? super Integer, ? extends Integer> function
-	) {
+	public void replaceAll(BiFunction<? super K, ? super Integer, ? extends Integer> function) {
 		Objects.requireNonNull(function, "function must not be null");
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] == null) {
@@ -539,46 +527,26 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 	}
 
 	@Override
-	public Integer computeIfAbsent(
-		K key,
-		java.util.function.Function<
-			? super K,
-			? extends Integer
-		> mappingFunction
-	) {
+	public Integer computeIfAbsent(K key, java.util.function.Function<? super K, ? extends Integer> mappingFunction) {
 		Objects.requireNonNull(key, "key must not be null");
-		Objects.requireNonNull(
-			mappingFunction,
-			"mappingFunction must not be null"
-		);
+		Objects.requireNonNull(mappingFunction, "mappingFunction must not be null");
 		int index = find(key);
 		if (index >= 0) {
 			return values[index];
 		}
 		Integer newValue = mappingFunction.apply(key);
 		if (newValue == null) {
-			throw new NullPointerException(
-				"mappingFunction must not return null"
-			);
+			throw new NullPointerException("mappingFunction must not return null");
 		}
 		put(key, newValue);
 		return newValue;
 	}
 
 	@Override
-	public Integer computeIfPresent(
-		K key,
-		BiFunction<
-			? super K,
-			? super Integer,
-			? extends Integer
-		> remappingFunction
-	) {
+	public Integer
+			computeIfPresent(K key, BiFunction<? super K, ? super Integer, ? extends Integer> remappingFunction) {
 		Objects.requireNonNull(key, "key must not be null");
-		Objects.requireNonNull(
-			remappingFunction,
-			"remappingFunction must not be null"
-		);
+		Objects.requireNonNull(remappingFunction, "remappingFunction must not be null");
 		int index = find(key);
 		if (index < 0) {
 			return null;
@@ -596,19 +564,9 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 	}
 
 	@Override
-	public Integer compute(
-		K key,
-		BiFunction<
-			? super K,
-			? super Integer,
-			? extends Integer
-		> remappingFunction
-	) {
+	public Integer compute(K key, BiFunction<? super K, ? super Integer, ? extends Integer> remappingFunction) {
 		Objects.requireNonNull(key, "key must not be null");
-		Objects.requireNonNull(
-			remappingFunction,
-			"remappingFunction must not be null"
-		);
+		Objects.requireNonNull(remappingFunction, "remappingFunction must not be null");
 		int index = find(key);
 		Integer current = index >= 0 ? values[index] : null;
 		Integer newValue = remappingFunction.apply(key, current);
@@ -629,18 +587,11 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 	public Integer merge(
 		K key,
 		Integer value,
-		BiFunction<
-			? super Integer,
-			? super Integer,
-			? extends Integer
-		> remappingFunction
+		BiFunction<? super Integer, ? super Integer, ? extends Integer> remappingFunction
 	) {
 		Objects.requireNonNull(key, "key must not be null");
 		Objects.requireNonNull(value, "value must not be null");
-		Objects.requireNonNull(
-			remappingFunction,
-			"remappingFunction must not be null"
-		);
+		Objects.requireNonNull(remappingFunction, "remappingFunction must not be null");
 		int index = find(key);
 		if (index < 0) {
 			put(key, value);
@@ -854,10 +805,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 			if (!(o instanceof Map.Entry<?, ?> e)) {
 				return false;
 			}
-			return (
-				(key == null ? e.getKey() == null : key.equals(e.getKey())) &&
-				Objects.equals(value, e.getValue())
-			);
+			return ((key == null ? e.getKey() == null : key.equals(e.getKey())) && Objects.equals(value, e.getValue()));
 		}
 
 		@Override

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
-import ru.snake.collections.map.IntToIntMap;
 
 /**
  * A simple hash set backed by parallel primitive arrays and linear probing,
@@ -41,11 +40,6 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	/** Keys array. */
 	private Object[] keys;
 
-	/**
-	 * Tracks which table slots hold live entries.
-	 */
-	private IntBitSet occupied;
-
 	/** Number of live elements. */
 	private int size;
 
@@ -72,13 +66,10 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	 */
 	public ObjectSet(int initialCapacity) {
 		if (initialCapacity < 0) {
-			throw new IllegalArgumentException(
-				"initialCapacity: " + initialCapacity
-			);
+			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
 		}
 		int cap = tableSizeFor(initialCapacity);
 		keys = new Object[cap];
-		occupied = new IntBitSet(cap);
 	}
 
 	// ------------------------------------------------------------------
@@ -102,7 +93,6 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 
 		// element not found – decode the first empty slot and insert directly
 		int index = -result - 1;
-		occupied.set(index);
 		keys[index] = element;
 		size++;
 
@@ -126,7 +116,6 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 			return false;
 		}
 		size--;
-		occupied.clear(index);
 		keys[index] = null;
 		shiftBack(index);
 		return true;
@@ -160,11 +149,8 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	 */
 	public void clear() {
 		for (int i = 0; i < keys.length; i++) {
-			if (occupied.get(i)) {
-				keys[i] = null;
-			}
+			keys[i] = null;
 		}
-		occupied.clearAll();
 		size = 0;
 	}
 
@@ -177,7 +163,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	 */
 	public void putAll(ObjectSet<? extends E> other) {
 		for (int i = 0; i < other.keys.length; i++) {
-			if (other.occupied.get(i)) {
+			if (other.keys[i] != null) {
 				@SuppressWarnings("unchecked")
 				E k = (E) other.keys[i];
 				add0(k);
@@ -219,7 +205,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	public Object[] toArray() {
 		ArrayList<Object> list = new ArrayList<>(size);
 		for (int i = 0; i < keys.length; i++) {
-			if (occupied.get(i)) {
+			if (keys[i] != null) {
 				list.add(keys[i]);
 			}
 		}
@@ -230,7 +216,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	public <T> T[] toArray(T[] a) {
 		ArrayList<E> list = new ArrayList<>(size);
 		for (int i = 0; i < keys.length; i++) {
-			if (occupied.get(i)) {
+			if (keys[i] != null) {
 				@SuppressWarnings("unchecked")
 				E e = (E) keys[i];
 				list.add(e);
@@ -278,9 +264,8 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 		// the scan of later slots.
 		boolean changed = false;
 		for (int i = keys.length - 1; i >= 0; i--) {
-			if (occupied.get(i)) {
+			if (keys[i] != null) {
 				if (!c.contains(keys[i])) {
-					occupied.clear(i);
 					keys[i] = null;
 					size--;
 					shiftBack(i);
@@ -293,9 +278,12 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof java.util.Set<?> that)) return false;
-		if (that.size() != this.size()) return false;
+		if (this == o)
+			return true;
+		if (!(o instanceof java.util.Set<?> that))
+			return false;
+		if (that.size() != this.size())
+			return false;
 		return containsAll(that);
 	}
 
@@ -303,7 +291,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	public int hashCode() {
 		int h = 0;
 		for (int i = 0; i < keys.length; i++) {
-			if (occupied.get(i)) {
+			if (keys[i] != null) {
 				h += keys[i].hashCode();
 			}
 		}
@@ -316,7 +304,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 		sb.append('[');
 		boolean first = true;
 		for (int i = 0; i < keys.length; i++) {
-			if (!occupied.get(i)) {
+			if (keys[i] == null) {
 				continue;
 			}
 			if (!first) {
@@ -342,21 +330,22 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	}
 
 	/**
-	 * Find the table index for the given element, or encode the first empty slot.
+	 * Find the table index for the given element, or encode the first empty
+	 * slot.
 	 *
 	 * <p>
 	 * Returns a non-negative index if the element is found. If not found,
 	 * returns {@code -(firstEmpty + 1)}, where {@code firstEmpty} is the index
-	 * of the first empty slot encountered during the linear probe. The caller can
-	 * recover the insertion point as {@code -returnValue - 1}.
+	 * of the first empty slot encountered during the linear probe. The caller
+	 * can recover the insertion point as {@code -returnValue - 1}.
 	 * </p>
 	 */
 	private int find(Object element) {
 		int mask = keys.length - 1;
 		int index = hash(element) & mask;
 
-		while (occupied.get(index)) {
-			if (keys[index] != null && keys[index].equals(element)) {
+		while (keys[index] != null) {
+			if (keys[index].equals(element)) {
 				return index;
 			}
 			index = (index + 1) & mask;
@@ -374,7 +363,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 
 		while (true) {
 			int next = (hole + 1) & mask;
-			if (!occupied.get(next)) {
+			if (keys[next] == null) {
 				// Chain ends — nothing left to shift
 				break;
 			}
@@ -386,8 +375,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 			// true hash position wraps through 'hole' before reaching 'next'.
 			if (distance(rehash, hole, mask) < distance(rehash, next, mask)) {
 				keys[hole] = key;
-				occupied.set(hole);
-				occupied.clear(next);
+				keys[next] = null;
 				hole = next;
 			} else {
 				break;
@@ -411,23 +399,20 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 			return;
 		}
 		Object[] oldKeys = keys;
-		IntBitSet oldOccupied = occupied;
 
 		keys = new Object[newCapacity];
-		occupied = new IntBitSet(newCapacity);
 		size = 0;
 
 		int mask = newCapacity - 1;
 		for (int i = 0; i < oldKeys.length; i++) {
-			if (!oldOccupied.get(i)) {
+			if (oldKeys[i] == null) {
 				continue;
 			}
 			Object k = oldKeys[i];
 			int index = hash(k) & mask;
-			while (occupied.get(index)) {
+			while (keys[index] != null) {
 				index = (index + 1) & mask;
 			}
-			occupied.set(index);
 			keys[index] = k;
 			size++;
 		}
@@ -457,7 +442,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 
 		ObjectSetIterator() {
 			// advance to first occupied slot
-			while (idx < keys.length && !occupied.get(idx)) {
+			while (idx < keys.length && keys[idx] == null) {
 				idx++;
 			}
 		}
@@ -475,7 +460,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 			}
 			T result = (T) keys[idx];
 			idx++;
-			while (idx < keys.length && !occupied.get(idx)) {
+			while (idx < keys.length && keys[idx] == null) {
 				idx++;
 			}
 			return result;
