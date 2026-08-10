@@ -322,11 +322,13 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	// ------------------------------------------------------------------
 
 	/**
-	 * Compute the Java-style hash for a key object.
+	 * Compute the hash for a key object.
 	 */
 	private static int hash(Object key) {
 		int h = key.hashCode();
-		return h ^ (h >>> 16);
+		h ^= (h >>> 20) ^ (h >>> 12);
+		h ^= (h >>> 7) ^ (h >>> 4);
+		return h;
 	}
 
 	/**

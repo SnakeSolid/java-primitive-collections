@@ -580,11 +580,13 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	// ------------------------------------------------------------------
 
 	/**
-	 * Compute the Java-style hash for a key object.
+	 * Compute the hash for a key object.
 	 */
 	private static int hash(Object key) {
 		int h = key.hashCode();
-		return h ^ (h >>> 16);
+		h ^= (h >>> 20) ^ (h >>> 12);
+		h ^= (h >>> 7) ^ (h >>> 4);
+		return h;
 	}
 
 	/**
@@ -740,15 +742,18 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 
 		@Override
 		public boolean hasNext() {
-			while (index < keys.length && keys[index] == null) {
-				index++;
+			for (int i = index; i < keys.length; i++) {
+				if (keys[i] != null) return true;
 			}
-			return index < keys.length;
+			return false;
 		}
 
 		@Override
 		public K next() {
-			if (!hasNext()) {
+			while (index < keys.length && keys[index] == null) {
+				index++;
+			}
+			if (index >= keys.length) {
 				throw new java.util.NoSuchElementException();
 			}
 			lastIndex = index;
@@ -778,15 +783,18 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 
 		@Override
 		public boolean hasNext() {
-			while (index < keys.length && keys[index] == null) {
-				index++;
+			for (int i = index; i < keys.length; i++) {
+				if (keys[i] != null) return true;
 			}
-			return index < keys.length;
+			return false;
 		}
 
 		@Override
 		public V next() {
-			if (!hasNext()) {
+			while (index < keys.length && keys[index] == null) {
+				index++;
+			}
+			if (index >= keys.length) {
 				throw new java.util.NoSuchElementException();
 			}
 			lastIndex = index;
@@ -816,15 +824,18 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 
 		@Override
 		public boolean hasNext() {
-			while (index < keys.length && keys[index] == null) {
-				index++;
+			for (int i = index; i < keys.length; i++) {
+				if (keys[i] != null) return true;
 			}
-			return index < keys.length;
+			return false;
 		}
 
 		@Override
 		public Map.Entry<K, V> next() {
-			if (!hasNext()) {
+			while (index < keys.length && keys[index] == null) {
+				index++;
+			}
+			if (index >= keys.length) {
 				throw new java.util.NoSuchElementException();
 			}
 			lastIndex = index;

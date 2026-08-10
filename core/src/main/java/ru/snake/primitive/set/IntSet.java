@@ -395,10 +395,12 @@ public final class IntSet extends AbstractSet<Integer> {
 	// ------------------------------------------------------------------
 
 	/**
-	 * Compute the Java-style hash for a key.
+	 * Compute the hash for a key.
 	 */
 	private static int hash(int h) {
-		return h ^ (h >>> 16);
+		h ^= (h >>> 20) ^ (h >>> 12);
+		h ^= (h >>> 7) ^ (h >>> 4);
+		return h;
 	}
 
 	/**

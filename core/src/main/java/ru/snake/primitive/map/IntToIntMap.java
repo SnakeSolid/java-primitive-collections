@@ -494,15 +494,18 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 
 		@Override
 		public boolean hasNext() {
-			while (index < keys.length && !occupied.get(index)) {
-				index++;
+			for (int i = index; i < keys.length; i++) {
+				if (occupied.get(i)) return true;
 			}
-			return index < keys.length;
+			return false;
 		}
 
 		@Override
 		public Integer next() {
-			if (!hasNext()) {
+			while (index < keys.length && !occupied.get(index)) {
+				index++;
+			}
+			if (index >= keys.length) {
 				throw new java.util.NoSuchElementException();
 			}
 			lastIndex = index;
@@ -532,15 +535,18 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 
 		@Override
 		public boolean hasNext() {
-			while (index < keys.length && !occupied.get(index)) {
-				index++;
+			for (int i = index; i < keys.length; i++) {
+				if (occupied.get(i)) return true;
 			}
-			return index < keys.length;
+			return false;
 		}
 
 		@Override
 		public Integer next() {
-			if (!hasNext()) {
+			while (index < keys.length && !occupied.get(index)) {
+				index++;
+			}
+			if (index >= keys.length) {
 				throw new java.util.NoSuchElementException();
 			}
 			lastIndex = index;
@@ -571,15 +577,18 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 
 		@Override
 		public boolean hasNext() {
-			while (index < keys.length && !occupied.get(index)) {
-				index++;
+			for (int i = index; i < keys.length; i++) {
+				if (occupied.get(i)) return true;
 			}
-			return index < keys.length;
+			return false;
 		}
 
 		@Override
 		public Map.Entry<Integer, Integer> next() {
-			if (!hasNext()) {
+			while (index < keys.length && !occupied.get(index)) {
+				index++;
+			}
+			if (index >= keys.length) {
 				throw new java.util.NoSuchElementException();
 			}
 			lastIndex = index;
@@ -746,15 +755,12 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	// ------------------------------------------------------------------
 
 	/**
-	 * Compute the Java-style hash for an int key.
-	 *
-	 * Since {@code int.hashCode()} is the value itself, we apply the same
-	 * spreading transformation used by {@link java.util.HashMap#hash(int)}: xor
-	 * the value with its unsigned 16-bit shift so that high bits influence the
-	 * low bits used for indexing.
+	 * Compute the hash for an int key.
 	 */
 	private static int hash(int h) {
-		return h ^ (h >>> 16);
+		h ^= (h >>> 20) ^ (h >>> 12);
+		h ^= (h >>> 7) ^ (h >>> 4);
+		return h;
 	}
 
 	/**
