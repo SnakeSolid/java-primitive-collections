@@ -1,7 +1,6 @@
 package ru.snake.primitive.map;
 
 import java.util.AbstractSet;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -9,7 +8,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-
 import ru.snake.primitive.set.IntBitSet;
 
 /**
@@ -76,7 +74,9 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	 */
 	public IntToIntMap(int initialCapacity) {
 		if (initialCapacity < 0) {
-			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
+			throw new IllegalArgumentException(
+				"initialCapacity: " + initialCapacity
+			);
 		}
 		int cap = tableSizeFor(initialCapacity);
 		keys = new int[cap];
@@ -336,7 +336,10 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 
 	@Override
 	public void putAll(Map<? extends Integer, ? extends Integer> map) {
-		for (Map.Entry<? extends Integer, ? extends Integer> e : map.entrySet()) {
+		for (Map.Entry<
+			? extends Integer,
+			? extends Integer
+		> e : map.entrySet()) {
 			put(e.getKey(), e.getValue());
 		}
 	}
@@ -396,13 +399,7 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 
 			@Override
 			public Iterator<Integer> iterator() {
-				ArrayList<Integer> list = new ArrayList<>(size);
-				for (int i = 0; i < keys.length; i++) {
-					if (occupied.get(i)) {
-						list.add(keys[i]);
-					}
-				}
-				return list.iterator();
+				return new KeyIterator();
 			}
 		};
 	}
@@ -417,13 +414,7 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 
 			@Override
 			public Iterator<Integer> iterator() {
-				ArrayList<Integer> list = new ArrayList<>(size);
-				for (int i = 0; i < keys.length; i++) {
-					if (occupied.get(i)) {
-						list.add(values[i]);
-					}
-				}
-				return list.iterator();
+				return new ValueIterator();
 			}
 		};
 	}
@@ -438,21 +429,27 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 
 			@Override
 			public boolean contains(Object o) {
-				if (!(o instanceof Map.Entry<?, ?> e)) {
+				if (!(o instanceof Map.Entry<?, ?>)) {
 					return false;
 				}
+				Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
 				if (!(e.getKey() instanceof Integer)) {
 					return false;
 				}
 				int index = find((Integer) e.getKey());
-				return index >= 0 && e.getValue() != null && e.getValue().equals(values[index]);
+				return (
+					index >= 0 &&
+					e.getValue() != null &&
+					e.getValue().equals(values[index])
+				);
 			}
 
 			@Override
 			public boolean remove(Object o) {
-				if (!(o instanceof Map.Entry<?, ?> e)) {
+				if (!(o instanceof Map.Entry<?, ?>)) {
 					return false;
 				}
+				Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
 				if (!(e.getKey() instanceof Integer)) {
 					return false;
 				}
@@ -461,7 +458,9 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 					return false;
 				}
 				// Only remove if the value also matches
-				if (e.getValue() == null || !e.getValue().equals(values[index])) {
+				if (
+					e.getValue() == null || !e.getValue().equals(values[index])
+				) {
 					return false;
 				}
 				size--;
@@ -479,15 +478,124 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 
 			@Override
 			public Iterator<Map.Entry<Integer, Integer>> iterator() {
-				ArrayList<Map.Entry<Integer, Integer>> list = new ArrayList<>(size);
-				for (int i = 0; i < keys.length; i++) {
-					if (occupied.get(i)) {
-						list.add(new IntIntEntry(keys[i], values[i]));
-					}
-				}
-				return list.iterator();
+				return new EntryIterator();
 			}
 		};
+	}
+
+	/**
+	 * Iterator over the keys of this map. Walks the internal arrays directly,
+	 * skipping empty slots.
+	 */
+	private final class KeyIterator implements Iterator<Integer> {
+
+		private int index = 0;
+		private int lastIndex = -1;
+
+		@Override
+		public boolean hasNext() {
+			while (index < keys.length && !occupied.get(index)) {
+				index++;
+			}
+			return index < keys.length;
+		}
+
+		@Override
+		public Integer next() {
+			if (!hasNext()) {
+				throw new java.util.NoSuchElementException();
+			}
+			lastIndex = index;
+			return keys[index++];
+		}
+
+		@Override
+		public void remove() {
+			if (lastIndex < 0) {
+				throw new IllegalStateException();
+			}
+			int key = keys[lastIndex];
+			IntToIntMap.this.remove0(key);
+			// After shiftBack, re-sync from current position
+			index = lastIndex;
+			lastIndex = -1;
+		}
+	}
+
+	/**
+	 * Iterator over the values of this map. Walks the internal arrays directly.
+	 */
+	private final class ValueIterator implements Iterator<Integer> {
+
+		private int index = 0;
+		private int lastIndex = -1;
+
+		@Override
+		public boolean hasNext() {
+			while (index < keys.length && !occupied.get(index)) {
+				index++;
+			}
+			return index < keys.length;
+		}
+
+		@Override
+		public Integer next() {
+			if (!hasNext()) {
+				throw new java.util.NoSuchElementException();
+			}
+			lastIndex = index;
+			return values[index++];
+		}
+
+		@Override
+		public void remove() {
+			if (lastIndex < 0) {
+				throw new IllegalStateException();
+			}
+			int key = keys[lastIndex];
+			IntToIntMap.this.remove0(key);
+			index = lastIndex;
+			lastIndex = -1;
+		}
+	}
+
+	/**
+	 * Iterator over the entries of this map.
+	 */
+	private final class EntryIterator
+		implements Iterator<Map.Entry<Integer, Integer>>
+	{
+
+		private int index = 0;
+		private int lastIndex = -1;
+
+		@Override
+		public boolean hasNext() {
+			while (index < keys.length && !occupied.get(index)) {
+				index++;
+			}
+			return index < keys.length;
+		}
+
+		@Override
+		public Map.Entry<Integer, Integer> next() {
+			if (!hasNext()) {
+				throw new java.util.NoSuchElementException();
+			}
+			lastIndex = index;
+			return new IntIntEntry(keys[index], values[index++]);
+		}
+
+		@Override
+		public void remove() {
+			if (lastIndex < 0) {
+				throw new IllegalStateException();
+			}
+			int key = keys[lastIndex];
+			IntToIntMap.this.remove0(key);
+			index = lastIndex;
+			lastIndex = -1;
+		}
 	}
 
 	@Override
@@ -501,7 +609,9 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	}
 
 	@Override
-	public void replaceAll(BiFunction<? super Integer, ? super Integer, ? extends Integer> function) {
+	public void replaceAll(
+		BiFunction<? super Integer, ? super Integer, ? extends Integer> function
+	) {
 		Objects.requireNonNull(function);
 		for (int i = 0; i < keys.length; i++) {
 			if (!occupied.get(i)) {
@@ -518,7 +628,10 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	@Override
 	public Integer computeIfAbsent(
 		Integer key,
-		java.util.function.Function<? super Integer, ? extends Integer> mappingFunction
+		java.util.function.Function<
+			? super Integer,
+			? extends Integer
+		> mappingFunction
 	) {
 		Objects.requireNonNull(mappingFunction);
 		if (key == null) {
@@ -539,7 +652,11 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	@Override
 	public Integer computeIfPresent(
 		Integer key,
-		BiFunction<? super Integer, ? super Integer, ? extends Integer> remappingFunction
+		BiFunction<
+			? super Integer,
+			? super Integer,
+			? extends Integer
+		> remappingFunction
 	) {
 		Objects.requireNonNull(remappingFunction);
 		if (key == null) {
@@ -563,8 +680,14 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	}
 
 	@Override
-	public Integer
-			compute(Integer key, BiFunction<? super Integer, ? super Integer, ? extends Integer> remappingFunction) {
+	public Integer compute(
+		Integer key,
+		BiFunction<
+			? super Integer,
+			? super Integer,
+			? extends Integer
+		> remappingFunction
+	) {
 		Objects.requireNonNull(remappingFunction);
 		if (key == null) {
 			throw new NullPointerException();
@@ -590,7 +713,11 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	public Integer merge(
 		Integer key,
 		Integer value,
-		BiFunction<? super Integer, ? super Integer, ? extends Integer> remappingFunction
+		BiFunction<
+			? super Integer,
+			? super Integer,
+			? extends Integer
+		> remappingFunction
 	) {
 		Objects.requireNonNull(remappingFunction);
 		if (key == null || value == null) {
@@ -814,10 +941,16 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 			if (this == o) {
 				return true;
 			}
-			if (!(o instanceof Map.Entry<?, ?> e)) {
+			if (!(o instanceof Map.Entry<?, ?>)) {
 				return false;
 			}
-			return e.getKey() != null && e.getValue() != null && e.getKey().equals(key) && e.getValue().equals(value);
+			Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
+			return (
+				e.getKey() != null &&
+				e.getValue() != null &&
+				e.getKey().equals(key) &&
+				e.getValue().equals(value)
+			);
 		}
 
 		@Override

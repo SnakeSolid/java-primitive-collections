@@ -122,7 +122,11 @@ public final class IntBitSet implements Set<Integer> {
 
 	@Override
 	public boolean remove(Object element) {
-		if (!(element instanceof Integer i) || i < 0 || i >= capacity) {
+		if (!(element instanceof Integer)) {
+			return false;
+		}
+		int i = (Integer) element;
+		if (i < 0 || i >= capacity) {
 			return false;
 		}
 		int mask = bitMask(i);
@@ -136,7 +140,11 @@ public final class IntBitSet implements Set<Integer> {
 
 	@Override
 	public boolean contains(Object element) {
-		if (!(element instanceof Integer i) || i < 0 || i >= capacity) {
+		if (!(element instanceof Integer)) {
+			return false;
+		}
+		int i = (Integer) element;
+		if (i < 0 || i >= capacity) {
 			return false;
 		}
 		return (words[wordIndex(i)] & bitMask(i)) != 0;
@@ -151,7 +159,9 @@ public final class IntBitSet implements Set<Integer> {
 	// Iterator
 	// ------------------------------------------------------------------
 
-	private final class IntBitSetIterator implements java.util.Iterator<Integer> {
+	private final class IntBitSetIterator
+		implements java.util.Iterator<Integer>
+	{
 
 		/** Current word index being scanned. */
 		private int wordIdx = 0;
@@ -290,12 +300,10 @@ public final class IntBitSet implements Set<Integer> {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (!(o instanceof Set<?> that))
-			return false;
-		if (that.size() != this.size())
-			return false;
+		if (this == o) return true;
+		if (!(o instanceof Set<?>)) return false;
+		Set<?> that = (Set<?>) o;
+		if (that.size() != this.size()) return false;
 		return containsAll(that);
 	}
 
@@ -322,8 +330,7 @@ public final class IntBitSet implements Set<Integer> {
 			int word = words[w];
 			while (word != 0) {
 				int bit = Integer.numberOfTrailingZeros(word);
-				if (!first)
-					sb.append(", ");
+				if (!first) sb.append(", ");
 				sb.append((w << 5) + bit);
 				first = false;
 				word &= ~(1 << bit);

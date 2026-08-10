@@ -1078,6 +1078,197 @@ class ObjectToIntMapTest {
 		assertEquals(100, map.get(p1Clone));
 	}
 
+	// ------------------------------------------------------------------
+	// Iterator remove()
+	// ------------------------------------------------------------------
+
+	@Test
+	void keySetIteratorRemove() {
+		ObjectToIntMap<String> map = new ObjectToIntMap<>();
+		map.putInt("a", 10);
+		map.putInt("b", 20);
+		map.putInt("c", 30);
+
+		Iterator<String> it = map.keySet().iterator();
+		String first = it.next();
+		it.remove();
+		assertFalse(map.containsKey(first));
+		assertEquals(2, map.size());
+
+		// Continue iterating
+		java.util.List<String> rest = new java.util.ArrayList<>();
+		while (it.hasNext()) rest.add(it.next());
+		assertEquals(2, rest.size());
+	}
+
+	@Test
+	void keySetIteratorRemoveBeforeNextThrows() {
+		ObjectToIntMap<String> map = new ObjectToIntMap<>();
+		map.putInt("a", 10);
+		Iterator<String> it = map.keySet().iterator();
+		assertThrows(IllegalStateException.class, it::remove);
+	}
+
+	@Test
+	void keySetIteratorRemoveTwiceThrows() {
+		ObjectToIntMap<String> map = new ObjectToIntMap<>();
+		map.putInt("a", 10);
+		map.putInt("b", 20);
+		Iterator<String> it = map.keySet().iterator();
+		it.next();
+		it.remove();
+		it.next();
+		it.remove();
+		assertThrows(IllegalStateException.class, it::remove);
+	}
+
+	@Test
+	void valuesIteratorRemove() {
+		ObjectToIntMap<String> map = new ObjectToIntMap<>();
+		map.putInt("a", 10);
+		map.putInt("b", 20);
+		map.putInt("c", 30);
+
+		Iterator<Integer> it = map.values().iterator();
+		it.next();
+		it.remove();
+		assertEquals(2, map.size());
+	}
+
+	@Test
+	void valuesIteratorRemoveBeforeNextThrows() {
+		ObjectToIntMap<String> map = new ObjectToIntMap<>();
+		map.putInt("a", 10);
+		Iterator<Integer> it = map.values().iterator();
+		assertThrows(IllegalStateException.class, it::remove);
+	}
+
+	@Test
+	void entrySetIteratorRemove() {
+		ObjectToIntMap<String> map = new ObjectToIntMap<>();
+		map.putInt("a", 10);
+		map.putInt("b", 20);
+		map.putInt("c", 30);
+
+		Iterator<Map.Entry<String, Integer>> it = map.entrySet().iterator();
+		Map.Entry<String, Integer> entry = it.next();
+		it.remove();
+		assertFalse(map.containsKey(entry.getKey()));
+		assertEquals(2, map.size());
+	}
+
+	@Test
+	void entrySetIteratorRemoveBeforeNextThrows() {
+		ObjectToIntMap<String> map = new ObjectToIntMap<>();
+		map.putInt("a", 10);
+		Iterator<Map.Entry<String, Integer>> it = map.entrySet().iterator();
+		assertThrows(IllegalStateException.class, it::remove);
+	}
+
+	// ------------------------------------------------------------------
+	// keySet retainAll, contains, clear
+	// ------------------------------------------------------------------
+
+	@Test
+	void keySetRetainAll() {
+		ObjectToIntMap<String> map = new ObjectToIntMap<>();
+		map.putInt("a", 10);
+		map.putInt("b", 20);
+		map.putInt("c", 30);
+
+		Set<String> keySet = map.keySet();
+		assertTrue(keySet.retainAll(java.util.Set.of("a", "c")));
+		assertEquals(2, map.size());
+		assertTrue(map.containsKey("a"));
+		assertFalse(map.containsKey("b"));
+		assertTrue(map.containsKey("c"));
+	}
+
+	@Test
+	void keySetRetainAllKeepNone() {
+		ObjectToIntMap<String> map = new ObjectToIntMap<>();
+		map.putInt("a", 10);
+		map.putInt("b", 20);
+
+		Set<String> keySet = map.keySet();
+		assertTrue(keySet.retainAll(java.util.Set.of()));
+		assertEquals(0, map.size());
+	}
+
+	@Test
+	void keySetRetainAllKeepAll() {
+		ObjectToIntMap<String> map = new ObjectToIntMap<>();
+		map.putInt("a", 10);
+		map.putInt("b", 20);
+
+		Set<String> keySet = map.keySet();
+		assertFalse(keySet.retainAll(java.util.Set.of("a", "b", "c")));
+		assertEquals(2, map.size());
+	}
+
+	@Test
+	void keySetContains() {
+		ObjectToIntMap<String> map = new ObjectToIntMap<>();
+		map.putInt("a", 10);
+		map.putInt("b", 20);
+
+		Set<String> keySet = map.keySet();
+		assertTrue(keySet.contains("a"));
+		assertFalse(keySet.contains("c"));
+		assertFalse(keySet.contains(null));
+	}
+
+	@Test
+	void keySetClear() {
+		ObjectToIntMap<String> map = new ObjectToIntMap<>();
+		map.putInt("a", 10);
+		map.putInt("b", 20);
+
+		map.keySet().clear();
+		assertEquals(0, map.size());
+	}
+
+	@Test
+	void entrySetClear() {
+		ObjectToIntMap<String> map = new ObjectToIntMap<>();
+		map.putInt("a", 10);
+		map.putInt("b", 20);
+
+		map.entrySet().clear();
+		assertEquals(0, map.size());
+	}
+
+	// ------------------------------------------------------------------
+	// Map interface edge cases
+	// ------------------------------------------------------------------
+
+	@Test
+	void mapGetOrDefaultMissingKeyReturnsDefault() {
+		ObjectToIntMap<String> map = new ObjectToIntMap<>();
+		map.putInt("a", 10);
+		assertEquals(
+			Integer.valueOf(99),
+			map.getOrDefault("missing", Integer.valueOf(99))
+		);
+	}
+
+	@Test
+	void mapGetOrDefaultPresentKeyReturnsValue() {
+		ObjectToIntMap<String> map = new ObjectToIntMap<>();
+		map.putInt("a", 10);
+		assertEquals(
+			Integer.valueOf(10),
+			map.getOrDefault("a", Integer.valueOf(99))
+		);
+	}
+
+	@Test
+	void mapContainsValueNonIntegerReturnsFalse() {
+		ObjectToIntMap<String> map = new ObjectToIntMap<>();
+		map.putInt("a", 10);
+		assertFalse(map.containsValue((Object) "not an int"));
+	}
+
 	static class Person {
 
 		final String name;
@@ -1091,7 +1282,8 @@ class ObjectToIntMapTest {
 		@Override
 		public boolean equals(Object o) {
 			if (this == o) return true;
-			if (!(o instanceof Person p)) return false;
+			if (!(o instanceof Person)) return false;
+			Person p = (Person) o;
 			return name.equals(p.name) && age == p.age;
 		}
 

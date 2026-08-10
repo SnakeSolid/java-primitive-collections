@@ -6,9 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-
 import org.junit.jupiter.api.Test;
 
 class IntToIntMapTest {
@@ -622,7 +622,9 @@ class IntToIntMapTest {
 	void replaceAllFunctionReturnsNullThrowsNpe() {
 		IntToIntMap map = new IntToIntMap();
 		map.put(1, 10);
-		assertThrows(NullPointerException.class, () -> map.replaceAll((k, v) -> null));
+		assertThrows(NullPointerException.class, () ->
+			map.replaceAll((k, v) -> null)
+		);
 	}
 
 	// ------------------------------------------------------------------
@@ -649,19 +651,25 @@ class IntToIntMapTest {
 	@Test
 	void computeIfAbsentNullKeyThrowsNpe() {
 		IntToIntMap map = new IntToIntMap();
-		assertThrows(NullPointerException.class, () -> map.computeIfAbsent(null, k -> 1));
+		assertThrows(NullPointerException.class, () ->
+			map.computeIfAbsent(null, k -> 1)
+		);
 	}
 
 	@Test
 	void computeIfAbsentNullFunctionThrowsNpe() {
 		IntToIntMap map = new IntToIntMap();
-		assertThrows(NullPointerException.class, () -> map.computeIfAbsent(1, null));
+		assertThrows(NullPointerException.class, () ->
+			map.computeIfAbsent(1, null)
+		);
 	}
 
 	@Test
 	void computeIfAbsentFunctionReturnsNullThrowsNpe() {
 		IntToIntMap map = new IntToIntMap();
-		assertThrows(NullPointerException.class, () -> map.computeIfAbsent(1, k -> null));
+		assertThrows(NullPointerException.class, () ->
+			map.computeIfAbsent(1, k -> null)
+		);
 	}
 
 	// ------------------------------------------------------------------
@@ -695,14 +703,18 @@ class IntToIntMapTest {
 	@Test
 	void computeIfPresentNullKeyThrowsNpe() {
 		IntToIntMap map = new IntToIntMap();
-		assertThrows(NullPointerException.class, () -> map.computeIfPresent(null, (k, v) -> 1));
+		assertThrows(NullPointerException.class, () ->
+			map.computeIfPresent(null, (k, v) -> 1)
+		);
 	}
 
 	@Test
 	void computeIfPresentNullFunctionThrowsNpe() {
 		IntToIntMap map = new IntToIntMap();
 		map.put(1, 10);
-		assertThrows(NullPointerException.class, () -> map.computeIfPresent(1, null));
+		assertThrows(NullPointerException.class, () ->
+			map.computeIfPresent(1, null)
+		);
 	}
 
 	// ------------------------------------------------------------------
@@ -743,7 +755,9 @@ class IntToIntMapTest {
 	@Test
 	void computeNullKeyThrowsNpe() {
 		IntToIntMap map = new IntToIntMap();
-		assertThrows(NullPointerException.class, () -> map.compute(null, (k, v) -> 1));
+		assertThrows(NullPointerException.class, () ->
+			map.compute(null, (k, v) -> 1)
+		);
 	}
 
 	@Test
@@ -782,13 +796,17 @@ class IntToIntMapTest {
 	@Test
 	void mergeNullKeyThrowsNpe() {
 		IntToIntMap map = new IntToIntMap();
-		assertThrows(NullPointerException.class, () -> map.merge(null, 1, (a, b) -> a + b));
+		assertThrows(NullPointerException.class, () ->
+			map.merge(null, 1, (a, b) -> a + b)
+		);
 	}
 
 	@Test
 	void mergeNullValueThrowsNpe() {
 		IntToIntMap map = new IntToIntMap();
-		assertThrows(NullPointerException.class, () -> map.merge(1, null, (a, b) -> a + b));
+		assertThrows(NullPointerException.class, () ->
+			map.merge(1, null, (a, b) -> a + b)
+		);
 	}
 
 	@Test
@@ -841,5 +859,153 @@ class IntToIntMapTest {
 		map.put(42, 99);
 		Map.Entry<Integer, Integer> entry = map.entrySet().iterator().next();
 		assertEquals("42=99", entry.toString());
+	}
+
+	// ------------------------------------------------------------------
+	// Iterator remove()
+	// ------------------------------------------------------------------
+
+	@Test
+	void keySetIteratorRemove() {
+		IntToIntMap map = new IntToIntMap();
+		map.put(1, 10);
+		map.put(2, 20);
+		map.put(3, 30);
+
+		Iterator<Integer> it = map.keySet().iterator();
+		Integer first = it.next();
+		it.remove();
+		assertFalse(map.containsKey(first));
+		assertEquals(2, map.size());
+
+		// Continue iterating
+		java.util.List<Integer> rest = new java.util.ArrayList<>();
+		while (it.hasNext()) rest.add(it.next());
+		assertEquals(2, rest.size());
+	}
+
+	@Test
+	void keySetIteratorRemoveBeforeNextThrows() {
+		IntToIntMap map = new IntToIntMap();
+		map.put(1, 10);
+		Iterator<Integer> it = map.keySet().iterator();
+		assertThrows(IllegalStateException.class, it::remove);
+	}
+
+	@Test
+	void keySetIteratorRemoveTwiceThrows() {
+		IntToIntMap map = new IntToIntMap();
+		map.put(1, 10);
+		map.put(2, 20);
+		Iterator<Integer> it = map.keySet().iterator();
+		it.next();
+		it.remove();
+		it.next();
+		it.remove();
+		assertThrows(IllegalStateException.class, it::remove);
+	}
+
+	@Test
+	void valuesIteratorRemove() {
+		IntToIntMap map = new IntToIntMap();
+		map.put(1, 10);
+		map.put(2, 20);
+		map.put(3, 30);
+
+		Iterator<Integer> it = map.values().iterator();
+		it.next();
+		it.remove();
+		assertEquals(2, map.size());
+	}
+
+	@Test
+	void valuesIteratorRemoveBeforeNextThrows() {
+		IntToIntMap map = new IntToIntMap();
+		map.put(1, 10);
+		Iterator<Integer> it = map.values().iterator();
+		assertThrows(IllegalStateException.class, it::remove);
+	}
+
+	@Test
+	void entrySetIteratorRemove() {
+		IntToIntMap map = new IntToIntMap();
+		map.put(1, 10);
+		map.put(2, 20);
+		map.put(3, 30);
+
+		Iterator<Map.Entry<Integer, Integer>> it = map.entrySet().iterator();
+		Map.Entry<Integer, Integer> entry = it.next();
+		it.remove();
+		assertFalse(map.containsKey(entry.getKey()));
+		assertEquals(2, map.size());
+	}
+
+	@Test
+	void entrySetIteratorRemoveBeforeNextThrows() {
+		IntToIntMap map = new IntToIntMap();
+		map.put(1, 10);
+		Iterator<Map.Entry<Integer, Integer>> it = map.entrySet().iterator();
+		assertThrows(IllegalStateException.class, it::remove);
+	}
+
+	// ------------------------------------------------------------------
+	// keySet retainAll and clear
+	// ------------------------------------------------------------------
+
+	@Test
+	void keySetRetainAll() {
+		IntToIntMap map = new IntToIntMap();
+		map.put(1, 10);
+		map.put(2, 20);
+		map.put(3, 30);
+
+		Set<Integer> keySet = map.keySet();
+		assertTrue(keySet.retainAll(java.util.Set.of(1, 3)));
+		assertEquals(2, map.size());
+		assertTrue(map.containsKey(1));
+		assertFalse(map.containsKey(2));
+		assertTrue(map.containsKey(3));
+	}
+
+	@Test
+	void keySetRetainAllKeepNone() {
+		IntToIntMap map = new IntToIntMap();
+		map.put(1, 10);
+		map.put(2, 20);
+
+		Set<Integer> keySet = map.keySet();
+		assertTrue(keySet.retainAll(java.util.Set.of()));
+		assertEquals(0, map.size());
+	}
+
+	@Test
+	void keySetRetainAllKeepAll() {
+		IntToIntMap map = new IntToIntMap();
+		map.put(1, 10);
+		map.put(2, 20);
+
+		Set<Integer> keySet = map.keySet();
+		assertFalse(keySet.retainAll(java.util.Set.of(1, 2, 3)));
+		assertEquals(2, map.size());
+	}
+
+	@Test
+	void keySetClear() {
+		IntToIntMap map = new IntToIntMap();
+		map.put(1, 10);
+		map.put(2, 20);
+
+		map.keySet().clear();
+		assertEquals(0, map.size());
+	}
+
+	@Test
+	void entrySetClear() {
+		IntToIntMap map = new IntToIntMap();
+		map.put(1, 10);
+		map.put(2, 20);
+
+		map.entrySet().clear();
+		assertEquals(0, map.size());
 	}
 }

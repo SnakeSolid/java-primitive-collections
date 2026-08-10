@@ -433,9 +433,10 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 
 			@Override
 			public boolean contains(Object o) {
-				if (!(o instanceof Map.Entry<?, ?> e)) {
+				if (!(o instanceof Map.Entry<?, ?>)) {
 					return false;
 				}
+				Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
 				if (e.getKey() == null) {
 					return false;
 				}
@@ -448,9 +449,10 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 
 			@Override
 			public boolean remove(Object o) {
-				if (!(o instanceof Map.Entry<?, ?> e)) {
+				if (!(o instanceof Map.Entry<?, ?>)) {
 					return false;
 				}
+				Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
 				if (e.getKey() == null) {
 					return false;
 				}
@@ -797,6 +799,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 	private final class KeyIterator implements Iterator<K> {
 
 		private int index = 0;
+		private int lastIndex = -1;
 
 		@Override
 		public boolean hasNext() {
@@ -812,8 +815,20 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 			if (index >= keys.length) {
 				throw new java.util.NoSuchElementException();
 			}
+			lastIndex = index;
 			K key = (K) keys[index++];
 			return key;
+		}
+
+		@Override
+		public void remove() {
+			if (lastIndex < 0) {
+				throw new IllegalStateException();
+			}
+			Object key = keys[lastIndex];
+			ObjectToIntMap.this.remove0(key);
+			index = lastIndex;
+			lastIndex = -1;
 		}
 	}
 
@@ -824,6 +839,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 	private final class ValueIterator implements Iterator<Integer> {
 
 		private int index = 0;
+		private int lastIndex = -1;
 
 		@Override
 		public boolean hasNext() {
@@ -839,8 +855,20 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 			if (index >= keys.length) {
 				throw new java.util.NoSuchElementException();
 			}
+			lastIndex = index;
 			int value = values[index++];
 			return value;
+		}
+
+		@Override
+		public void remove() {
+			if (lastIndex < 0) {
+				throw new IllegalStateException();
+			}
+			Object key = keys[lastIndex];
+			ObjectToIntMap.this.remove0(key);
+			index = lastIndex;
+			lastIndex = -1;
 		}
 	}
 
@@ -855,6 +883,7 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 	{
 
 		private int index = 0;
+		private int lastIndex = -1;
 
 		@Override
 		public boolean hasNext() {
@@ -870,9 +899,21 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 			if (index >= keys.length) {
 				throw new java.util.NoSuchElementException();
 			}
+			lastIndex = index;
 			K key = (K) keys[index];
 			int value = values[index++];
 			return new KeyValueEntry(key, value);
+		}
+
+		@Override
+		public void remove() {
+			if (lastIndex < 0) {
+				throw new IllegalStateException();
+			}
+			Object key = keys[lastIndex];
+			ObjectToIntMap.this.remove0(key);
+			index = lastIndex;
+			lastIndex = -1;
 		}
 	}
 
@@ -921,9 +962,10 @@ public final class ObjectToIntMap<K> implements Map<K, Integer> {
 			if (this == o) {
 				return true;
 			}
-			if (!(o instanceof Map.Entry<?, ?> e)) {
+			if (!(o instanceof Map.Entry<?, ?>)) {
 				return false;
 			}
+			Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
 			return (
 				(key == null ? e.getKey() == null : key.equals(e.getKey())) &&
 				Objects.equals(value, e.getValue())

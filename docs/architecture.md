@@ -282,3 +282,4 @@ Implements `Map<K, V>`. `null` keys and values throw `NullPointerException`. Use
 - **Removal**: All map and set classes use backward-shift deletion — cleared slots trigger a compacting scan that shifts subsequent chain entries backward, eliminating the need for tombstones or full rehash on removal.
 - **Thread safety**: None of the classes are thread-safe.
 - **IntSet compact encoding**: 27-bit key + 5-bit offset packed into hash table slots, allowing up to 32 elements per slot without extra indirection.
+- **Iterators**: All collections use custom inner-class iterators that walk internal arrays directly — no intermediate `ArrayList` allocation. Every iterator supports `remove()` by delegating to the collection's internal removal logic (which handles `shiftBack` and slot cleanup). After `remove()`, the iterator re-syncs its cursor from the last-removed position to account for any shifted entries.

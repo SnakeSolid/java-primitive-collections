@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
-
 import org.junit.jupiter.api.Test;
 
 class IntBitSetTest {
@@ -430,5 +429,68 @@ class IntBitSetTest {
 		IntBitSet set = new IntBitSet(0);
 		assertEquals(0, set.size());
 		assertTrue(set.isEmpty());
+	}
+
+	// ------------------------------------------------------------------
+	// iterator remove()
+	// ------------------------------------------------------------------
+
+	@Test
+	void iteratorRemoveDeletesElement() {
+		IntBitSet set = new IntBitSet(64);
+		set.set(3);
+		set.set(10);
+		set.set(35);
+		set.set(63);
+
+		java.util.Iterator<Integer> it = set.iterator();
+		int first = it.next();
+		it.remove();
+		assertEquals(3, set.size());
+		assertFalse(set.get(first));
+
+		// Continue iterating the rest
+		int count = 0;
+		while (it.hasNext()) {
+			it.next();
+			count++;
+		}
+		assertEquals(3, count);
+	}
+
+	@Test
+	void iteratorRemoveBeforeNextThrows() {
+		IntBitSet set = new IntBitSet(32);
+		set.set(5);
+		java.util.Iterator<Integer> it = set.iterator();
+		assertThrows(IllegalStateException.class, it::remove);
+	}
+
+	@Test
+	void iteratorRemoveTwiceThrows() {
+		IntBitSet set = new IntBitSet(32);
+		set.set(5);
+		set.set(10);
+		java.util.Iterator<Integer> it = set.iterator();
+		it.next();
+		it.remove();
+		it.next();
+		it.remove();
+		assertThrows(IllegalStateException.class, it::remove);
+	}
+
+	@Test
+	void iteratorRemoveAllViaIterator() {
+		IntBitSet set = new IntBitSet(32);
+		set.set(1);
+		set.set(2);
+		set.set(3);
+
+		java.util.Iterator<Integer> it = set.iterator();
+		while (it.hasNext()) {
+			it.next();
+			it.remove();
+		}
+		assertEquals(0, set.size());
 	}
 }

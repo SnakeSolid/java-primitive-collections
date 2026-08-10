@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-
 import org.junit.jupiter.api.Test;
 
 class IntSetTest {
@@ -274,12 +273,43 @@ class IntSetTest {
 	}
 
 	@Test
-	void iteratorRemoveThrows() {
+	void iteratorRemoveThrowsIllegalStateExceptionWithoutNext() {
+		IntSet set = new IntSet();
+		set.add(1);
+		Iterator<Integer> it = set.iterator();
+		assertThrows(IllegalStateException.class, it::remove);
+	}
+
+	@Test
+	void iteratorRemoveDeletesElement() {
+		IntSet set = new IntSet();
+		set.add(1);
+		set.add(2);
+		set.add(3);
+		Iterator<Integer> it = set.iterator();
+		int removed = it.next();
+		it.remove();
+		assertEquals(2, set.size());
+		assertFalse(set.contains(removed));
+		// iterator still works after remove
+		ArrayList<Integer> remaining = new ArrayList<>();
+		while (it.hasNext()) {
+			remaining.add(it.next());
+		}
+		assertEquals(2, remaining.size());
+		for (Integer e : remaining) {
+			assertTrue(set.contains(e));
+		}
+	}
+
+	@Test
+	void iteratorRemoveTwiceWithoutNextThrows() {
 		IntSet set = new IntSet();
 		set.add(1);
 		Iterator<Integer> it = set.iterator();
 		it.next();
-		assertThrows(UnsupportedOperationException.class, it::remove);
+		it.remove();
+		assertThrows(IllegalStateException.class, it::remove);
 	}
 
 	// ------------------------------------------------------------------
@@ -498,7 +528,10 @@ class IntSetTest {
 				set.add(i);
 			}
 			for (int i = 0; i < 200; i++) {
-				assertTrue(set.contains(i), "round " + round + " should contain " + i);
+				assertTrue(
+					set.contains(i),
+					"round " + round + " should contain " + i
+				);
 			}
 			assertEquals(200, set.size(), "round " + round);
 			set.clear();

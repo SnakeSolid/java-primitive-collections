@@ -8,17 +8,17 @@ JUnit Jupiter 5.10.2. Run with `./mvnw test` (executed in the `core` module).
 
 | Class | Tests |
 |-------|-------|
-| `IntBitSetTest` | 42 |
-| `IntSetTest` | 49 |
+| `IntBitSetTest` | 46 |
+| `IntSetTest` | 51 |
 | `IntSetShiftTest` | 12 |
-| `ObjectSetTest` | 42 |
-| `IntToIntMapTest` | 86 |
+| `ObjectSetTest` | 43 |
+| `IntToIntMapTest` | 98 |
 | `IntToIntMapShiftTest` | 16 |
-| `ObjectMapTest` | 92 |
+| `ObjectMapTest` | 105 |
 | `ObjectMapShiftTest` | 15 |
-| `ObjectToIntMapTest` | 97 |
+| `ObjectToIntMapTest` | 121 |
 | `ObjectToIntMapShiftTest` | 15 |
-| **Total** | **466** |
+| **Total** | **522** |
 
 ## Coverage Goals
 
@@ -98,7 +98,7 @@ All benchmarks share a common configuration inherited from `JMHConfig` (throughp
 | `add` | Insert unique elements (uses `ThreadState`) |
 | `remove` | Remove present elements (uses `ThreadState`) |
 | `iterate` | Iterate over all elements |
-| `iterateRemoveAll` | Iterator with `remove()` — only benchmarked for `IntBitSet` and `HashSet`; `IntSet` and `ObjectSet` iterators throw `UnsupportedOperationException` |
+| `iterateRemoveAll` | Iterator with `remove()` — benchmarked for `IntBitSet` and `HashSet`; all collection iterators now support `remove()` |
 | `containsAll` | Bulk containment check |
 
 **Map classes (`IntToIntMap`, `ObjectToIntMap`, `ObjectMap`):**

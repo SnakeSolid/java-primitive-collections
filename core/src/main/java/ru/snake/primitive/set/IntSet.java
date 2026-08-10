@@ -100,7 +100,9 @@ public final class IntSet extends AbstractSet<Integer> {
 	 */
 	public IntSet(int initialCapacity) {
 		if (initialCapacity < 0) {
-			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
+			throw new IllegalArgumentException(
+				"initialCapacity: " + initialCapacity
+			);
 		}
 		int cap = tableSizeFor(initialCapacity);
 		keys = new int[cap];
@@ -166,9 +168,10 @@ public final class IntSet extends AbstractSet<Integer> {
 
 	@Override
 	public boolean remove(Object element) {
-		if (!(element instanceof Integer i)) {
+		if (!(element instanceof Integer)) {
 			return false;
 		}
+		int i = (Integer) element;
 
 		int key = keyOf(i);
 		int bit = bitOf(i);
@@ -199,9 +202,10 @@ public final class IntSet extends AbstractSet<Integer> {
 
 	@Override
 	public boolean contains(Object element) {
-		if (!(element instanceof Integer i)) {
+		if (!(element instanceof Integer)) {
 			return false;
 		}
+		int i = (Integer) element;
 
 		int key = keyOf(i);
 		int bit = bitOf(i);
@@ -310,8 +314,7 @@ public final class IntSet extends AbstractSet<Integer> {
 		// entries from higher indices into the hole – those higher indices
 		// have already been processed in this loop.
 		for (int i = keys.length - 1; i >= 0; i--) {
-			if (keys[i] == -1)
-				continue;
+			if (keys[i] == -1) continue;
 			int base = keys[i];
 			int word = values[i];
 			int newWord = word;
@@ -339,12 +342,10 @@ public final class IntSet extends AbstractSet<Integer> {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (!(o instanceof java.util.Set<?> that))
-			return false;
-		if (that.size() != this.size())
-			return false;
+		if (this == o) return true;
+		if (!(o instanceof java.util.Set<?>)) return false;
+		java.util.Set<?> that = (java.util.Set<?>) o;
+		if (that.size() != this.size()) return false;
 		return containsAll(that);
 	}
 
@@ -379,8 +380,7 @@ public final class IntSet extends AbstractSet<Integer> {
 			int word = values[i];
 			while (word != 0) {
 				int bit = Integer.numberOfTrailingZeros(word);
-				if (!first)
-					sb.append(", ");
+				if (!first) sb.append(", ");
 				sb.append(base + bit);
 				first = false;
 				word &= ~(1 << bit);
@@ -563,6 +563,8 @@ public final class IntSet extends AbstractSet<Integer> {
 		private boolean hasMore = false;
 		/** The next element value to return. */
 		private int nextValue = 0;
+		/** The element returned by the last call to {@code next()}, or {@code Integer.MIN_VALUE} if none. */
+		private int lastValue = Integer.MIN_VALUE;
 
 		IntSetIterator() {
 			findNext();
@@ -598,6 +600,7 @@ public final class IntSet extends AbstractSet<Integer> {
 				throw new java.util.NoSuchElementException();
 			}
 			int result = nextValue;
+			lastValue = result;
 			if (remaining != 0) {
 				// More bits in this slot
 				int bit = Integer.numberOfTrailingZeros(remaining);
@@ -614,7 +617,13 @@ public final class IntSet extends AbstractSet<Integer> {
 
 		@Override
 		public void remove() {
-			throw new UnsupportedOperationException();
+			if (lastValue == Integer.MIN_VALUE) {
+				throw new IllegalStateException();
+			}
+			IntSet.this.remove(lastValue);
+			remaining = 0;
+			findNext();
+			lastValue = Integer.MIN_VALUE;
 		}
 	}
 }

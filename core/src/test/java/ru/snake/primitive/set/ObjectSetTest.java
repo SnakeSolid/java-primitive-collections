@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-
 import org.junit.jupiter.api.Test;
 
 class ObjectSetTest {
@@ -31,7 +30,9 @@ class ObjectSetTest {
 
 	@Test
 	void negativeCapacityThrows() {
-		assertThrows(IllegalArgumentException.class, () -> new ObjectSet<String>(-1));
+		assertThrows(IllegalArgumentException.class, () ->
+			new ObjectSet<String>(-1)
+		);
 	}
 
 	// ------------------------------------------------------------------
@@ -158,12 +159,26 @@ class ObjectSetTest {
 	}
 
 	@Test
-	void iteratorRemoveThrows() {
+	void iteratorRemove() {
+		ObjectSet<String> set = new ObjectSet<>();
+		set.add("one");
+		set.add("two");
+		set.add("three");
+		Iterator<String> it = set.iterator();
+		it.next();
+		it.remove();
+		assertEquals(2, set.size());
+
+		// calling remove() again without next() should throw
+		assertThrows(IllegalStateException.class, it::remove);
+	}
+
+	@Test
+	void iteratorRemoveWithoutNext() {
 		ObjectSet<String> set = new ObjectSet<>();
 		set.add("one");
 		Iterator<String> it = set.iterator();
-		it.next();
-		assertThrows(UnsupportedOperationException.class, it::remove);
+		assertThrows(IllegalStateException.class, it::remove);
 	}
 
 	// ------------------------------------------------------------------

@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-
 import org.junit.jupiter.api.Test;
 
 /**
@@ -46,12 +45,16 @@ class ObjectMapTest {
 
 	@Test
 	void negativeCapacityThrows() {
-		assertThrows(IllegalArgumentException.class, () -> new ObjectMap<String, String>(-1));
+		assertThrows(IllegalArgumentException.class, () ->
+			new ObjectMap<String, String>(-1)
+		);
 	}
 
 	@Test
 	void zeroCapacityConstructor() {
-		ObjectMap<String, String> map = assertDoesNotThrow(() -> new ObjectMap<>(0));
+		ObjectMap<String, String> map = assertDoesNotThrow(() ->
+			new ObjectMap<>(0)
+		);
 		map.put("x", "y");
 		assertEquals(1, map.size());
 		assertEquals("y", map.get("x"));
@@ -344,12 +347,11 @@ class ObjectMapTest {
 		map.put("b", 2);
 		Set<Map.Entry<String, Integer>> entries = map.entrySet();
 		assertEquals(2, entries.size());
-		boolean foundA = false, foundB = false;
+		boolean foundA = false,
+			foundB = false;
 		for (Map.Entry<String, Integer> e : entries) {
-			if (e.getKey().equals("a") && e.getValue() == 1)
-				foundA = true;
-			if (e.getKey().equals("b") && e.getValue() == 2)
-				foundB = true;
+			if (e.getKey().equals("a") && e.getValue() == 1) foundA = true;
+			if (e.getKey().equals("b") && e.getValue() == 2) foundB = true;
 		}
 		assertTrue(foundA);
 		assertTrue(foundB);
@@ -440,21 +442,27 @@ class ObjectMapTest {
 	@Test
 	void entrySetContainsNullKeyReturnsFalse() {
 		ObjectMap<String, String> map = new ObjectMap<>();
-		assertFalse(map.entrySet().contains(new AbstractMap.SimpleEntry<>(null, "v")));
+		assertFalse(
+			map.entrySet().contains(new AbstractMap.SimpleEntry<>(null, "v"))
+		);
 	}
 
 	@Test
 	void entrySetContainsValueMismatchReturnsFalse() {
 		ObjectMap<String, String> map = new ObjectMap<>();
 		map.put("a", "1");
-		assertFalse(map.entrySet().contains(new AbstractMap.SimpleEntry<>("a", "2")));
+		assertFalse(
+			map.entrySet().contains(new AbstractMap.SimpleEntry<>("a", "2"))
+		);
 	}
 
 	@Test
 	void entrySetContainsMissingKeyReturnsFalse() {
 		ObjectMap<String, String> map = new ObjectMap<>();
 		map.put("a", "1");
-		assertFalse(map.entrySet().contains(new AbstractMap.SimpleEntry<>("b", "1")));
+		assertFalse(
+			map.entrySet().contains(new AbstractMap.SimpleEntry<>("b", "1"))
+		);
 	}
 
 	@Test
@@ -462,7 +470,9 @@ class ObjectMapTest {
 		ObjectMap<String, String> map = new ObjectMap<>();
 		map.put("a", "1");
 		map.put("b", "2");
-		assertTrue(map.entrySet().remove(new AbstractMap.SimpleEntry<>("a", "1")));
+		assertTrue(
+			map.entrySet().remove(new AbstractMap.SimpleEntry<>("a", "1"))
+		);
 		assertEquals(1, map.size());
 		assertFalse(map.containsKey("a"));
 	}
@@ -477,21 +487,27 @@ class ObjectMapTest {
 	@Test
 	void entrySetRemoveNullKeyReturnsFalse() {
 		ObjectMap<String, String> map = new ObjectMap<>();
-		assertFalse(map.entrySet().remove(new AbstractMap.SimpleEntry<>(null, "v")));
+		assertFalse(
+			map.entrySet().remove(new AbstractMap.SimpleEntry<>(null, "v"))
+		);
 	}
 
 	@Test
 	void entrySetRemoveMissingKeyReturnsFalse() {
 		ObjectMap<String, String> map = new ObjectMap<>();
 		map.put("a", "1");
-		assertFalse(map.entrySet().remove(new AbstractMap.SimpleEntry<>("b", "1")));
+		assertFalse(
+			map.entrySet().remove(new AbstractMap.SimpleEntry<>("b", "1"))
+		);
 	}
 
 	@Test
 	void entrySetRemoveValueMismatchReturnsFalse() {
 		ObjectMap<String, String> map = new ObjectMap<>();
 		map.put("a", "1");
-		assertFalse(map.entrySet().remove(new AbstractMap.SimpleEntry<>("a", "2")));
+		assertFalse(
+			map.entrySet().remove(new AbstractMap.SimpleEntry<>("a", "2"))
+		);
 		assertEquals(1, map.size());
 	}
 
@@ -534,7 +550,9 @@ class ObjectMapTest {
 	void replaceAllFunctionReturnsNullThrowsNpe() {
 		ObjectMap<String, String> map = new ObjectMap<>();
 		map.put("a", "1");
-		assertThrows(NullPointerException.class, () -> map.replaceAll((k, v) -> null));
+		assertThrows(NullPointerException.class, () ->
+			map.replaceAll((k, v) -> null)
+		);
 	}
 
 	@Test
@@ -555,19 +573,25 @@ class ObjectMapTest {
 	@Test
 	void computeIfAbsentNullKeyThrowsNpe() {
 		ObjectMap<String, String> map = new ObjectMap<>();
-		assertThrows(NullPointerException.class, () -> map.computeIfAbsent(null, k -> "v"));
+		assertThrows(NullPointerException.class, () ->
+			map.computeIfAbsent(null, k -> "v")
+		);
 	}
 
 	@Test
 	void computeIfAbsentNullFunctionThrowsNpe() {
 		ObjectMap<String, String> map = new ObjectMap<>();
-		assertThrows(NullPointerException.class, () -> map.computeIfAbsent("k", null));
+		assertThrows(NullPointerException.class, () ->
+			map.computeIfAbsent("k", null)
+		);
 	}
 
 	@Test
 	void computeIfAbsentFunctionReturnsNullThrowsNpe() {
 		ObjectMap<String, String> map = new ObjectMap<>();
-		assertThrows(NullPointerException.class, () -> map.computeIfAbsent("k", k -> null));
+		assertThrows(NullPointerException.class, () ->
+			map.computeIfAbsent("k", k -> null)
+		);
 	}
 
 	@Test
@@ -596,13 +620,17 @@ class ObjectMapTest {
 	@Test
 	void computeIfPresentNullKeyThrowsNpe() {
 		ObjectMap<String, String> map = new ObjectMap<>();
-		assertThrows(NullPointerException.class, () -> map.computeIfPresent(null, (k, v) -> "v"));
+		assertThrows(NullPointerException.class, () ->
+			map.computeIfPresent(null, (k, v) -> "v")
+		);
 	}
 
 	@Test
 	void computeIfPresentNullFunctionThrowsNpe() {
 		ObjectMap<String, String> map = new ObjectMap<>();
-		assertThrows(NullPointerException.class, () -> map.computeIfPresent("k", null));
+		assertThrows(NullPointerException.class, () ->
+			map.computeIfPresent("k", null)
+		);
 	}
 
 	@Test
@@ -638,7 +666,9 @@ class ObjectMapTest {
 	@Test
 	void computeNullKeyThrowsNpe() {
 		ObjectMap<String, String> map = new ObjectMap<>();
-		assertThrows(NullPointerException.class, () -> map.compute(null, (k, v) -> "v"));
+		assertThrows(NullPointerException.class, () ->
+			map.compute(null, (k, v) -> "v")
+		);
 	}
 
 	@Test
@@ -658,7 +688,10 @@ class ObjectMapTest {
 	void mergeKeyPresentUpdatesValue() {
 		ObjectMap<String, Integer> map = new ObjectMap<>();
 		map.put("a", 10);
-		assertEquals(11, map.merge("a", 1, (oldVal, newVal) -> oldVal + newVal));
+		assertEquals(
+			11,
+			map.merge("a", 1, (oldVal, newVal) -> oldVal + newVal)
+		);
 		assertEquals(11, map.get("a"));
 	}
 
@@ -673,19 +706,25 @@ class ObjectMapTest {
 	@Test
 	void mergeNullKeyThrowsNpe() {
 		ObjectMap<String, String> map = new ObjectMap<>();
-		assertThrows(NullPointerException.class, () -> map.merge(null, "v", (o, n) -> o + n));
+		assertThrows(NullPointerException.class, () ->
+			map.merge(null, "v", (o, n) -> o + n)
+		);
 	}
 
 	@Test
 	void mergeNullValueThrowsNpe() {
 		ObjectMap<String, String> map = new ObjectMap<>();
-		assertThrows(NullPointerException.class, () -> map.merge("k", null, (o, n) -> o + n));
+		assertThrows(NullPointerException.class, () ->
+			map.merge("k", null, (o, n) -> o + n)
+		);
 	}
 
 	@Test
 	void mergeNullFunctionThrowsNpe() {
 		ObjectMap<String, String> map = new ObjectMap<>();
-		assertThrows(NullPointerException.class, () -> map.merge("k", "v", null));
+		assertThrows(NullPointerException.class, () ->
+			map.merge("k", "v", null)
+		);
 	}
 
 	// ------------------------------------------------------------------
@@ -730,7 +769,8 @@ class ObjectMapTest {
 		ObjectMap<String, String> map = new ObjectMap<>();
 		map.put("a", "1");
 		Map.Entry<String, String> entry = map.entrySet().iterator().next();
-		AbstractMap.SimpleEntry<String, String> other = new AbstractMap.SimpleEntry<>("a", "1");
+		AbstractMap.SimpleEntry<String, String> other =
+			new AbstractMap.SimpleEntry<>("a", "1");
 		assertEquals(entry, other);
 	}
 
@@ -739,7 +779,8 @@ class ObjectMapTest {
 		ObjectMap<String, String> map = new ObjectMap<>();
 		map.put("a", "1");
 		Map.Entry<String, String> entry = map.entrySet().iterator().next();
-		AbstractMap.SimpleEntry<String, String> other = new AbstractMap.SimpleEntry<>("a", "1");
+		AbstractMap.SimpleEntry<String, String> other =
+			new AbstractMap.SimpleEntry<>("a", "1");
 		assertEquals(entry.hashCode(), other.hashCode());
 	}
 
@@ -861,10 +902,9 @@ class ObjectMapTest {
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o)
-				return true;
-			if (!(o instanceof Person p))
-				return false;
+			if (this == o) return true;
+			if (!(o instanceof Person)) return false;
+			Person p = (Person) o;
 			return name.equals(p.name) && age == p.age;
 		}
 
@@ -889,10 +929,9 @@ class ObjectMapTest {
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o)
-				return true;
-			if (!(o instanceof Address a))
-				return false;
+			if (this == o) return true;
+			if (!(o instanceof Address)) return false;
+			Address a = (Address) o;
 			return city.equals(a.city);
 		}
 
@@ -917,5 +956,165 @@ class ObjectMapTest {
 		HashMap<String, String> hm = new HashMap<>();
 		// ObjectMap does NOT implement Map.equals, so inequality is expected
 		assertNotEquals(map, hm);
+	}
+
+	// ------------------------------------------------------------------
+	// Iterator remove()
+	// ------------------------------------------------------------------
+
+	@Test
+	void keySetIteratorRemove() {
+		ObjectMap<String, Integer> map = new ObjectMap<>();
+		map.put("a", 10);
+		map.put("b", 20);
+		map.put("c", 30);
+
+		Iterator<String> it = map.keySet().iterator();
+		String first = it.next();
+		it.remove();
+		assertFalse(map.containsKey(first));
+		assertEquals(2, map.size());
+
+		// Continue iterating
+		java.util.List<String> rest = new java.util.ArrayList<>();
+		while (it.hasNext()) rest.add(it.next());
+		assertEquals(2, rest.size());
+	}
+
+	@Test
+	void keySetIteratorRemoveBeforeNextThrows() {
+		ObjectMap<String, Integer> map = new ObjectMap<>();
+		map.put("a", 10);
+		Iterator<String> it = map.keySet().iterator();
+		assertThrows(IllegalStateException.class, it::remove);
+	}
+
+	@Test
+	void keySetIteratorRemoveTwiceThrows() {
+		ObjectMap<String, Integer> map = new ObjectMap<>();
+		map.put("a", 10);
+		map.put("b", 20);
+		Iterator<String> it = map.keySet().iterator();
+		it.next();
+		it.remove();
+		it.next();
+		it.remove();
+		assertThrows(IllegalStateException.class, it::remove);
+	}
+
+	@Test
+	void valuesIteratorRemove() {
+		ObjectMap<String, Integer> map = new ObjectMap<>();
+		map.put("a", 10);
+		map.put("b", 20);
+		map.put("c", 30);
+
+		Iterator<Integer> it = map.values().iterator();
+		it.next();
+		it.remove();
+		assertEquals(2, map.size());
+	}
+
+	@Test
+	void valuesIteratorRemoveBeforeNextThrows() {
+		ObjectMap<String, Integer> map = new ObjectMap<>();
+		map.put("a", 10);
+		Iterator<Integer> it = map.values().iterator();
+		assertThrows(IllegalStateException.class, it::remove);
+	}
+
+	@Test
+	void entrySetIteratorRemove() {
+		ObjectMap<String, Integer> map = new ObjectMap<>();
+		map.put("a", 10);
+		map.put("b", 20);
+		map.put("c", 30);
+
+		Iterator<Map.Entry<String, Integer>> it = map.entrySet().iterator();
+		Map.Entry<String, Integer> entry = it.next();
+		it.remove();
+		assertFalse(map.containsKey(entry.getKey()));
+		assertEquals(2, map.size());
+	}
+
+	@Test
+	void entrySetIteratorRemoveBeforeNextThrows() {
+		ObjectMap<String, Integer> map = new ObjectMap<>();
+		map.put("a", 10);
+		Iterator<Map.Entry<String, Integer>> it = map.entrySet().iterator();
+		assertThrows(IllegalStateException.class, it::remove);
+	}
+
+	// ------------------------------------------------------------------
+	// keySet retainAll, contains, clear
+	// ------------------------------------------------------------------
+
+	@Test
+	void keySetRetainAll() {
+		ObjectMap<String, Integer> map = new ObjectMap<>();
+		map.put("a", 10);
+		map.put("b", 20);
+		map.put("c", 30);
+
+		Set<String> keySet = map.keySet();
+		assertTrue(keySet.retainAll(java.util.Set.of("a", "c")));
+		assertEquals(2, map.size());
+		assertTrue(map.containsKey("a"));
+		assertFalse(map.containsKey("b"));
+		assertTrue(map.containsKey("c"));
+	}
+
+	@Test
+	void keySetRetainAllKeepNone() {
+		ObjectMap<String, Integer> map = new ObjectMap<>();
+		map.put("a", 10);
+		map.put("b", 20);
+
+		Set<String> keySet = map.keySet();
+		assertTrue(keySet.retainAll(java.util.Set.of()));
+		assertEquals(0, map.size());
+	}
+
+	@Test
+	void keySetRetainAllKeepAll() {
+		ObjectMap<String, Integer> map = new ObjectMap<>();
+		map.put("a", 10);
+		map.put("b", 20);
+
+		Set<String> keySet = map.keySet();
+		assertFalse(keySet.retainAll(java.util.Set.of("a", "b", "c")));
+		assertEquals(2, map.size());
+	}
+
+	@Test
+	void keySetContains() {
+		ObjectMap<String, Integer> map = new ObjectMap<>();
+		map.put("a", 10);
+		map.put("b", 20);
+
+		Set<String> keySet = map.keySet();
+		assertTrue(keySet.contains("a"));
+		assertFalse(keySet.contains("c"));
+		assertFalse(keySet.contains(null));
+	}
+
+	@Test
+	void keySetClear() {
+		ObjectMap<String, Integer> map = new ObjectMap<>();
+		map.put("a", 10);
+		map.put("b", 20);
+
+		map.keySet().clear();
+		assertEquals(0, map.size());
+	}
+
+	@Test
+	void entrySetClear() {
+		ObjectMap<String, Integer> map = new ObjectMap<>();
+		map.put("a", 10);
+		map.put("b", 20);
+
+		map.entrySet().clear();
+		assertEquals(0, map.size());
 	}
 }

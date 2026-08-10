@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
-
 import ru.snake.primitive.map.IntToIntMap;
 
 /**
@@ -69,7 +68,9 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	@SuppressWarnings("unchecked")
 	public ObjectSet(int initialCapacity) {
 		if (initialCapacity < 0) {
-			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
+			throw new IllegalArgumentException(
+				"initialCapacity: " + initialCapacity
+			);
 		}
 		int cap = tableSizeFor(initialCapacity);
 		keys = (E[]) new Object[cap];
@@ -279,12 +280,10 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (!(o instanceof java.util.Set<?> that))
-			return false;
-		if (that.size() != this.size())
-			return false;
+		if (this == o) return true;
+		if (!(o instanceof java.util.Set<?>)) return false;
+		java.util.Set<?> that = (java.util.Set<?>) o;
+		if (that.size() != this.size()) return false;
 		return containsAll(that);
 	}
 
@@ -442,6 +441,12 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 		/** Current table index being scanned. */
 		private int idx = 0;
 
+		/** Element returned by the last call to {@link #next()}. */
+		private E lastElement = null;
+
+		/** {@code true} if {@link #next()} has been called and {@link #remove()} is permitted. */
+		private boolean hasLast = false;
+
 		ObjectSetIterator() {
 			// advance to first occupied slot
 			while (idx < keys.length && keys[idx] == null) {
@@ -460,17 +465,26 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 			if (idx >= keys.length) {
 				throw new java.util.NoSuchElementException();
 			}
-			T result = (T) keys[idx];
+			lastElement = (E) keys[idx];
+			hasLast = true;
 			idx++;
 			while (idx < keys.length && keys[idx] == null) {
 				idx++;
 			}
-			return result;
+			return (T) lastElement;
 		}
 
 		@Override
 		public void remove() {
-			throw new UnsupportedOperationException();
+			if (!hasLast) {
+				throw new java.lang.IllegalStateException();
+			}
+			ObjectSet.this.remove0(lastElement);
+			while (idx < keys.length && keys[idx] == null) {
+				idx++;
+			}
+			lastElement = null;
+			hasLast = false;
 		}
 	}
 }
