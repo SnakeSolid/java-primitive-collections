@@ -8,17 +8,17 @@ JUnit Jupiter 5.10.2. Run with `./mvnw test` (executed in the `core` module).
 
 | Class | Tests |
 |-------|-------|
-| `IntBitSetTest` | 46 |
-| `IntSetTest` | 51 |
+| `IntBitSetTest` | 49 |
+| `IntSetTest` | 55 |
 | `IntSetShiftTest` | 12 |
-| `ObjectSetTest` | 43 |
+| `ObjectSetTest` | 47 |
 | `IntToIntMapTest` | 98 |
 | `IntToIntMapShiftTest` | 16 |
 | `ObjectMapTest` | 105 |
 | `ObjectMapShiftTest` | 15 |
 | `ObjectToIntMapTest` | 121 |
 | `ObjectToIntMapShiftTest` | 15 |
-| **Total** | **522** |
+| **Total** | **533** |
 
 ## Coverage Goals
 

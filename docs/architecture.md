@@ -92,6 +92,10 @@ the first empty slot.
 
 `retainAll` rebuilds each packed word by keeping only the bits whose elements are present in the argument collection, avoiding the infinite-loop pitfall of not advancing through all bits.
 
+### toArray
+
+`toArray()` allocates `Object[size]` and fills it directly — no intermediate `ArrayList`. `toArray(T[])` follows the `Collection` contract: reuses the caller's array if large enough (null-terminating at `a[size]` when oversized), or allocates a new correctly-typed array via `Arrays.copyOf`.
+
 ## ObjectSet
 
 A generic open-addressed hash set backed by `Object[]` with linear probing. Follows the same architecture as `ObjectToIntMap` but stores only elements (no associated values).
@@ -136,6 +140,10 @@ These use primitive return types to avoid unnecessary boxing where possible.
 - `null` elements are **not supported** — `NullPointerException` is thrown for `add0`.
 - `add(null)` (Set interface) throws `NullPointerException`.
 - `contains(null)` / `remove(null)` return `false`.
+
+### toArray
+
+Same pattern as `IntSet` — direct `Object[size]` allocation and `Arrays.copyOf` for the typed variant; no intermediate `ArrayList`.
 
 ### Interface Compliance
 
@@ -283,3 +291,4 @@ Implements `Map<K, V>`. `null` keys and values throw `NullPointerException`. Use
 - **Thread safety**: None of the classes are thread-safe.
 - **IntSet compact encoding**: 27-bit key + 5-bit offset packed into hash table slots, allowing up to 32 elements per slot without extra indirection.
 - **Iterators**: All collections use custom inner-class iterators that walk internal arrays directly — no intermediate `ArrayList` allocation. Every iterator supports `remove()` by delegating to the collection's internal removal logic (which handles `shiftBack` and slot cleanup). After `remove()`, the iterator re-syncs its cursor from the last-removed position to account for any shifted entries.
+- **toArray**: All `Set` implementations allocate `Object[size]` and fill it directly with a for-loop — no `ArrayList` intermediary. The typed `toArray(T[])` reuses the caller's array when large enough (null-terminating per `Collection` contract) or allocates a new correctly-typed array via `Arrays.copyOf`.
