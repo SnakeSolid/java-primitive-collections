@@ -1,7 +1,7 @@
 package ru.snake.primitive.set;
 
 import java.util.AbstractSet;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
@@ -204,25 +204,34 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 
 	@Override
 	public Object[] toArray() {
-		ArrayList<Object> list = new ArrayList<>(size);
+		Object[] result = new Object[size];
+		int idx = 0;
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] != null) {
-				list.add(keys[i]);
+				result[idx++] = keys[i];
 			}
 		}
-		return list.toArray();
+		return result;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T[] toArray(T[] a) {
-		ArrayList<E> list = new ArrayList<>(size);
+		Object[] collected = new Object[size];
+		int idx = 0;
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] != null) {
-				E e = keys[i];
-				list.add(e);
+				collected[idx++] = keys[i];
 			}
 		}
-		return list.toArray(a);
+		if (a.length >= size) {
+			System.arraycopy(collected, 0, a, 0, size);
+			if (a.length > size) {
+				a[size] = null;
+			}
+			return a;
+		}
+		return (T[]) Arrays.copyOf(collected, size, a.getClass());
 	}
 
 	@Override

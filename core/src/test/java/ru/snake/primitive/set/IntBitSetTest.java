@@ -396,6 +396,15 @@ class IntBitSetTest {
 		set.set(10);
 		Object[] arr = set.toArray();
 		assertEquals(2, arr.length);
+		assertEquals(5, arr[0]);
+		assertEquals(10, arr[1]);
+	}
+
+	@Test
+	void toArrayEmptyReturnsEmptyArray() {
+		IntBitSet set = new IntBitSet(32);
+		Object[] arr = set.toArray();
+		assertEquals(0, arr.length);
 	}
 
 	@Test
@@ -405,6 +414,8 @@ class IntBitSetTest {
 		set.set(10);
 		Integer[] arr = set.toArray(new Integer[0]);
 		assertEquals(2, arr.length);
+		assertEquals(5, arr[0].intValue());
+		assertEquals(10, arr[1].intValue());
 	}
 
 	@Test
@@ -418,6 +429,27 @@ class IntBitSetTest {
 		assertEquals(5, arr[0].intValue());
 		assertEquals(10, arr[1].intValue());
 		assertNull(arr[2]);
+	}
+
+	@Test
+	void toArrayTypedExactArray() {
+		IntBitSet set = new IntBitSet(32);
+		set.set(5);
+		set.set(10);
+		Integer[] arr = new Integer[2];
+		Integer[] result = set.toArray(arr);
+		assertEquals(arr, (Object) result);
+		assertEquals(5, arr[0].intValue());
+		assertEquals(10, arr[1].intValue());
+	}
+
+	@Test
+	void toArrayTypedEmptyReturnsSameArray() {
+		IntBitSet set = new IntBitSet(32);
+		Integer[] arr = new Integer[3];
+		Integer[] result = set.toArray(arr);
+		assertEquals(arr, (Object) result);
+		assertNull(arr[0]);
 	}
 
 	// ------------------------------------------------------------------

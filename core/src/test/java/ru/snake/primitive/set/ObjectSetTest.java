@@ -3,10 +3,12 @@ package ru.snake.primitive.set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -362,6 +364,16 @@ class ObjectSetTest {
 		set.add("y");
 		Object[] arr = set.toArray();
 		assertEquals(2, arr.length);
+		Set<?> elements = new HashSet<>(java.util.Arrays.asList(arr));
+		assertTrue(elements.contains("x"));
+		assertTrue(elements.contains("y"));
+	}
+
+	@Test
+	void toArrayEmptyReturnsEmptyArray() {
+		ObjectSet<String> set = new ObjectSet<>();
+		Object[] arr = set.toArray();
+		assertEquals(0, arr.length);
 	}
 
 	@Test
@@ -371,6 +383,41 @@ class ObjectSetTest {
 		set.add("y");
 		String[] arr = set.toArray(new String[0]);
 		assertEquals(2, arr.length);
+		assertTrue(java.util.Arrays.asList(arr).contains("x"));
+		assertTrue(java.util.Arrays.asList(arr).contains("y"));
+	}
+
+	@Test
+	void toArrayTypedLargeArray() {
+		ObjectSet<String> set = new ObjectSet<>();
+		set.add("x");
+		set.add("y");
+		String[] arr = set.toArray(new String[10]);
+		assertEquals(10, arr.length);
+		assertTrue(java.util.Arrays.asList(arr[0], arr[1]).contains("x"));
+		assertTrue(java.util.Arrays.asList(arr[0], arr[1]).contains("y"));
+		assertNull(arr[2]);
+	}
+
+	@Test
+	void toArrayTypedExactArray() {
+		ObjectSet<String> set = new ObjectSet<>();
+		set.add("x");
+		set.add("y");
+		String[] arr = new String[2];
+		String[] result = set.toArray(arr);
+		assertEquals(arr, (Object) result);
+		assertTrue(java.util.Arrays.asList(arr).contains("x"));
+		assertTrue(java.util.Arrays.asList(arr).contains("y"));
+	}
+
+	@Test
+	void toArrayTypedEmptyReturnsSameArray() {
+		ObjectSet<String> set = new ObjectSet<>();
+		String[] arr = new String[3];
+		String[] result = set.toArray(arr);
+		assertEquals(arr, (Object) result);
+		assertNull(arr[0]);
 	}
 
 	// ------------------------------------------------------------------

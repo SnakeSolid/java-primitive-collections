@@ -43,8 +43,8 @@ A BitSet that stores each boolean value as an individual bit in an `int[]`. Each
 | `get(i)` | `words[i >> 5] & (1 << (i & 0x1F))` |
 | `set(i)` | OR the bit; increment `size` if it was 0 |
 | `clear(i)` | AND-not the bit; decrement `size` if it was 1 |
-| `toArray()` | Iterates set bits in word/bit order; returns `Object[]` |
-| `toArray(T[])` | Iterates set bits; delegates to `ArrayList.toArray(T[])` — reuses caller array when large enough |
+| `toArray()` | Iterates set bits in word/bit order; fills `Object[size]` directly |
+| `toArray(T[])` | Collects into `Object[size]`, then copies into caller's array or allocates via `Arrays.copyOf` |
 | `iterator()` | Custom `IntBitSetIterator` walks word/bit state inline; supports `remove()` by clearing the last-returned bit |
 
 ### Constraints

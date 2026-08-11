@@ -1,7 +1,6 @@
 package ru.snake.primitive.set;
 
 import java.util.AbstractSet;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -240,22 +239,8 @@ public final class IntSet extends AbstractSet<Integer> {
 
 	@Override
 	public Object[] toArray() {
-		ArrayList<Integer> list = new ArrayList<>(size);
-		collectAll(list);
-		return list.toArray();
-	}
-
-	@Override
-	public <T> T[] toArray(T[] a) {
-		ArrayList<Integer> list = new ArrayList<>(size);
-		collectAll(list);
-		return list.toArray(a);
-	}
-
-	/**
-	 * Appends all elements in this set to the given list.
-	 */
-	private void collectAll(ArrayList<Integer> list) {
+		Object[] result = new Object[size];
+		int idx = 0;
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] == -1) {
 				continue;
@@ -264,10 +249,38 @@ public final class IntSet extends AbstractSet<Integer> {
 			int word = values[i];
 			while (word != 0) {
 				int bit = Integer.numberOfTrailingZeros(word);
-				list.add(base + bit);
+				result[idx++] = base + bit;
 				word &= ~(1 << bit);
 			}
 		}
+		return result;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T[] toArray(T[] a) {
+		Object[] collected = new Object[size];
+		int idx = 0;
+		for (int i = 0; i < keys.length; i++) {
+			if (keys[i] == -1) {
+				continue;
+			}
+			int base = keys[i];
+			int word = values[i];
+			while (word != 0) {
+				int bit = Integer.numberOfTrailingZeros(word);
+				collected[idx++] = base + bit;
+				word &= ~(1 << bit);
+			}
+		}
+		if (a.length >= size) {
+			System.arraycopy(collected, 0, a, 0, size);
+			if (a.length > size) {
+				a[size] = null;
+			}
+			return a;
+		}
+		return (T[]) Arrays.copyOf(collected, size, a.getClass());
 	}
 
 	@Override

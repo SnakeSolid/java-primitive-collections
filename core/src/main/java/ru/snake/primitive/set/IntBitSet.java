@@ -1,6 +1,6 @@
 package ru.snake.primitive.set;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -220,30 +220,40 @@ public final class IntBitSet implements Set<Integer> {
 
 	@Override
 	public Object[] toArray() {
-		ArrayList<Integer> list = new ArrayList<>(size);
+		Object[] result = new Object[size];
+		int idx = 0;
 		for (int w = 0; w < words.length; w++) {
 			int word = words[w];
 			while (word != 0) {
 				int bit = Integer.numberOfTrailingZeros(word);
-				list.add((w << 5) + bit);
+				result[idx++] = (w << 5) + bit;
 				word &= ~(1 << bit);
 			}
 		}
-		return list.toArray();
+		return result;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T[] toArray(T[] a) {
-		ArrayList<Integer> list = new ArrayList<>(size);
+		Object[] collected = new Object[size];
+		int idx = 0;
 		for (int w = 0; w < words.length; w++) {
 			int word = words[w];
 			while (word != 0) {
 				int bit = Integer.numberOfTrailingZeros(word);
-				list.add((w << 5) + bit);
+				collected[idx++] = (w << 5) + bit;
 				word &= ~(1 << bit);
 			}
 		}
-		return list.toArray(a);
+		if (a.length >= size) {
+			System.arraycopy(collected, 0, a, 0, size);
+			if (a.length > size) {
+				a[size] = null;
+			}
+			return a;
+		}
+		return (T[]) Arrays.copyOf(collected, size, a.getClass());
 	}
 
 	@Override

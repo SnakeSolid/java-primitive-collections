@@ -3,6 +3,7 @@ package ru.snake.primitive.set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -493,6 +494,15 @@ class IntSetTest {
 		set.add(10);
 		Object[] arr = set.toArray();
 		assertEquals(2, arr.length);
+		assertEquals(5, arr[0]);
+		assertEquals(10, arr[1]);
+	}
+
+	@Test
+	void toArrayEmptyReturnsEmptyArray() {
+		IntSet set = new IntSet();
+		Object[] arr = set.toArray();
+		assertEquals(0, arr.length);
 	}
 
 	@Test
@@ -502,6 +512,41 @@ class IntSetTest {
 		set.add(10);
 		Integer[] arr = set.toArray(new Integer[0]);
 		assertEquals(2, arr.length);
+		assertEquals(5, arr[0].intValue());
+		assertEquals(10, arr[1].intValue());
+	}
+
+	@Test
+	void toArrayTypedLargeArray() {
+		IntSet set = new IntSet();
+		set.add(5);
+		set.add(10);
+		Integer[] arr = set.toArray(new Integer[10]);
+		assertEquals(10, arr.length);
+		assertEquals(5, arr[0].intValue());
+		assertEquals(10, arr[1].intValue());
+		assertNull(arr[2]);
+	}
+
+	@Test
+	void toArrayTypedExactArray() {
+		IntSet set = new IntSet();
+		set.add(5);
+		set.add(10);
+		Integer[] arr = new Integer[2];
+		Integer[] result = set.toArray(arr);
+		assertEquals(arr, (Object) result);
+		assertEquals(5, arr[0].intValue());
+		assertEquals(10, arr[1].intValue());
+	}
+
+	@Test
+	void toArrayTypedEmptyReturnsSameArray() {
+		IntSet set = new IntSet();
+		Integer[] arr = new Integer[3];
+		Integer[] result = set.toArray(arr);
+		assertEquals(arr, (Object) result);
+		assertNull(arr[0]);
 	}
 
 	// ------------------------------------------------------------------
