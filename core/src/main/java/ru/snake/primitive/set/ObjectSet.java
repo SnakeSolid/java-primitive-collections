@@ -68,9 +68,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	@SuppressWarnings("unchecked")
 	public ObjectSet(int initialCapacity) {
 		if (initialCapacity < 0) {
-			throw new IllegalArgumentException(
-				"initialCapacity: " + initialCapacity
-			);
+			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
 		}
 		int cap = tableSizeFor(initialCapacity);
 		keys = (E[]) new Object[cap];
@@ -280,10 +278,13 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof java.util.Set<?>)) return false;
+		if (this == o)
+			return true;
+		if (!(o instanceof java.util.Set<?>))
+			return false;
 		java.util.Set<?> that = (java.util.Set<?>) o;
-		if (that.size() != this.size()) return false;
+		if (that.size() != this.size())
+			return false;
 		return containsAll(that);
 	}
 
@@ -446,7 +447,10 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 		/** Element returned by the last call to {@link #next()}. */
 		private E lastElement = null;
 
-		/** {@code true} if {@link #next()} has been called and {@link #remove()} is permitted. */
+		/**
+		 * {@code true} if {@link #next()} has been called and {@link #remove()}
+		 * is permitted.
+		 */
 		private boolean hasLast = false;
 
 		ObjectSetIterator() {

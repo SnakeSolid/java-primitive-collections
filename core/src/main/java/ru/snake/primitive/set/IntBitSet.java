@@ -159,9 +159,7 @@ public final class IntBitSet implements Set<Integer> {
 	// Iterator
 	// ------------------------------------------------------------------
 
-	private final class IntBitSetIterator
-		implements java.util.Iterator<Integer>
-	{
+	private final class IntBitSetIterator implements java.util.Iterator<Integer> {
 
 		/** Current word index being scanned. */
 		private int wordIdx = 0;
@@ -300,10 +298,13 @@ public final class IntBitSet implements Set<Integer> {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof Set<?>)) return false;
+		if (this == o)
+			return true;
+		if (!(o instanceof Set<?>))
+			return false;
 		Set<?> that = (Set<?>) o;
-		if (that.size() != this.size()) return false;
+		if (that.size() != this.size())
+			return false;
 		return containsAll(that);
 	}
 
@@ -330,7 +331,8 @@ public final class IntBitSet implements Set<Integer> {
 			int word = words[w];
 			while (word != 0) {
 				int bit = Integer.numberOfTrailingZeros(word);
-				if (!first) sb.append(", ");
+				if (!first)
+					sb.append(", ");
 				sb.append((w << 5) + bit);
 				first = false;
 				word &= ~(1 << bit);

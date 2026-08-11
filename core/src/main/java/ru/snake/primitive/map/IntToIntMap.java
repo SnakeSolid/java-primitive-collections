@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+
 import ru.snake.primitive.set.IntBitSet;
 
 /**
@@ -74,9 +75,7 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	 */
 	public IntToIntMap(int initialCapacity) {
 		if (initialCapacity < 0) {
-			throw new IllegalArgumentException(
-				"initialCapacity: " + initialCapacity
-			);
+			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
 		}
 		int cap = tableSizeFor(initialCapacity);
 		keys = new int[cap];
@@ -336,10 +335,7 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 
 	@Override
 	public void putAll(Map<? extends Integer, ? extends Integer> map) {
-		for (Map.Entry<
-			? extends Integer,
-			? extends Integer
-		> e : map.entrySet()) {
+		for (Map.Entry<? extends Integer, ? extends Integer> e : map.entrySet()) {
 			put(e.getKey(), e.getValue());
 		}
 	}
@@ -437,11 +433,7 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 					return false;
 				}
 				int index = find((Integer) e.getKey());
-				return (
-					index >= 0 &&
-					e.getValue() != null &&
-					e.getValue().equals(values[index])
-				);
+				return (index >= 0 && e.getValue() != null && e.getValue().equals(values[index]));
 			}
 
 			@Override
@@ -458,9 +450,7 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 					return false;
 				}
 				// Only remove if the value also matches
-				if (
-					e.getValue() == null || !e.getValue().equals(values[index])
-				) {
+				if (e.getValue() == null || !e.getValue().equals(values[index])) {
 					return false;
 				}
 				size--;
@@ -495,7 +485,8 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 		@Override
 		public boolean hasNext() {
 			for (int i = index; i < keys.length; i++) {
-				if (occupied.get(i)) return true;
+				if (occupied.get(i))
+					return true;
 			}
 			return false;
 		}
@@ -536,7 +527,8 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 		@Override
 		public boolean hasNext() {
 			for (int i = index; i < keys.length; i++) {
-				if (occupied.get(i)) return true;
+				if (occupied.get(i))
+					return true;
 			}
 			return false;
 		}
@@ -568,9 +560,7 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	/**
 	 * Iterator over the entries of this map.
 	 */
-	private final class EntryIterator
-		implements Iterator<Map.Entry<Integer, Integer>>
-	{
+	private final class EntryIterator implements Iterator<Map.Entry<Integer, Integer>> {
 
 		private int index = 0;
 		private int lastIndex = -1;
@@ -578,7 +568,8 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 		@Override
 		public boolean hasNext() {
 			for (int i = index; i < keys.length; i++) {
-				if (occupied.get(i)) return true;
+				if (occupied.get(i))
+					return true;
 			}
 			return false;
 		}
@@ -618,9 +609,7 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	}
 
 	@Override
-	public void replaceAll(
-		BiFunction<? super Integer, ? super Integer, ? extends Integer> function
-	) {
+	public void replaceAll(BiFunction<? super Integer, ? super Integer, ? extends Integer> function) {
 		Objects.requireNonNull(function);
 		for (int i = 0; i < keys.length; i++) {
 			if (!occupied.get(i)) {
@@ -637,10 +626,7 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	@Override
 	public Integer computeIfAbsent(
 		Integer key,
-		java.util.function.Function<
-			? super Integer,
-			? extends Integer
-		> mappingFunction
+		java.util.function.Function<? super Integer, ? extends Integer> mappingFunction
 	) {
 		Objects.requireNonNull(mappingFunction);
 		if (key == null) {
@@ -661,11 +647,7 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	@Override
 	public Integer computeIfPresent(
 		Integer key,
-		BiFunction<
-			? super Integer,
-			? super Integer,
-			? extends Integer
-		> remappingFunction
+		BiFunction<? super Integer, ? super Integer, ? extends Integer> remappingFunction
 	) {
 		Objects.requireNonNull(remappingFunction);
 		if (key == null) {
@@ -689,14 +671,8 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	}
 
 	@Override
-	public Integer compute(
-		Integer key,
-		BiFunction<
-			? super Integer,
-			? super Integer,
-			? extends Integer
-		> remappingFunction
-	) {
+	public Integer
+			compute(Integer key, BiFunction<? super Integer, ? super Integer, ? extends Integer> remappingFunction) {
 		Objects.requireNonNull(remappingFunction);
 		if (key == null) {
 			throw new NullPointerException();
@@ -722,11 +698,7 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	public Integer merge(
 		Integer key,
 		Integer value,
-		BiFunction<
-			? super Integer,
-			? super Integer,
-			? extends Integer
-		> remappingFunction
+		BiFunction<? super Integer, ? super Integer, ? extends Integer> remappingFunction
 	) {
 		Objects.requireNonNull(remappingFunction);
 		if (key == null || value == null) {
@@ -951,12 +923,7 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 				return false;
 			}
 			Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
-			return (
-				e.getKey() != null &&
-				e.getValue() != null &&
-				e.getKey().equals(key) &&
-				e.getValue().equals(value)
-			);
+			return (e.getKey() != null && e.getValue() != null && e.getKey().equals(key) && e.getValue().equals(value));
 		}
 
 		@Override
