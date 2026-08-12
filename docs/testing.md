@@ -141,3 +141,21 @@ For a quick run (1 fork, 1 warmup, 1 measurement):
 ```bash
 java -jar benchmarks/target/primitive-benchmarks-0.0.1-SNAPSHOT-benchmarks.jar IntBitSetBenchmark -f 1 -wi 1 -i 1
 ```
+
+### Memory Footprint Analysis
+
+The `memory` module uses JOL's `GraphLayout` to measure the retained heap size of each collection. See [docs/memory-benchmarks.md](./docs/memory-benchmarks.md) for results and analysis.
+
+```bash
+java -jar memory/target/primitive-memory-0.0.1-SNAPSHOT-standalone.jar
+```
+
+Key memory findings at 10 000 elements:
+
+| Class | Per-element (bytes) | Savings vs JDK |
+|---|---|---|
+| `IntBitSet` | 0.13 | 99.8% less than `HashSet<Integer>` |
+| `IntSet` | 0.42 | 99.2% less than `HashSet<Integer>` |
+| `IntToIntMap` | 13.32 | 81.1% less than `HashMap<Integer, Integer>` |
+| `ObjectSet<Integer>` | 22.56 | 58.7% less than `HashSet<Integer>` |
+| `ObjectMap<String, String>` | 109.11 | 18.9% less than `HashMap<String, String>` |

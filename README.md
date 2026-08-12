@@ -6,12 +6,12 @@ Lightweight collections for Java — no dependencies, no boxing overhead.
 
 | Class | Description |
 |-------|-------------|
-| [`IntBitSet`](src/main/java/ru/snake/collections/set/IntBitSet.java) | BitSet backed by `int[]`; implements `Set<Integer>` for non-negative integers |
-| [`IntSet`](src/main/java/ru/snake/collections/set/IntSet.java) | Compact hash set of `int` values; each slot packs 32 elements via bit encoding; implements `Set<Integer>` |
-| [`ObjectSet`](src/main/java/ru/snake/collections/set/ObjectSet.java) | Generic hash set backed by `Object[]` with linear probing; implements `Set<E>` |
-| [`IntToIntMap`](src/main/java/ru/snake/collections/map/IntToIntMap.java) | HashMap from `int` to `int` with linear probing; implements `Map<Integer, Integer>` |
-| [`ObjectToIntMap`](src/main/java/ru/snake/collections/map/ObjectToIntMap.java) | HashMap from `Object` to `int` with linear probing; implements `Map<K, Integer>` |
-| [`ObjectMap`](src/main/java/ru/snake/collections/map/ObjectMap.java) | Generic HashMap from `K` to `V` with linear probing; implements `Map<K, V>` |
+| [`IntBitSet`](core/src/main/java/ru/snake/primitive/set/IntBitSet.java) | BitSet backed by `int[]`; implements `Set<Integer>` for non-negative integers |
+| [`IntSet`](core/src/main/java/ru/snake/primitive/set/IntSet.java) | Compact hash set of `int` values; each slot packs 32 elements via bit encoding; implements `Set<Integer>` |
+| [`ObjectSet`](core/src/main/java/ru/snake/primitive/set/ObjectSet.java) | Generic hash set backed by `Object[]` with linear probing; implements `Set<E>` |
+| [`IntToIntMap`](core/src/main/java/ru/snake/primitive/map/IntToIntMap.java) | HashMap from `int` to `int` with linear probing; implements `Map<Integer, Integer>` |
+| [`ObjectToIntMap`](core/src/main/java/ru/snake/primitive/map/ObjectToIntMap.java) | HashMap from `Object` to `int` with linear probing; implements `Map<K, Integer>` |
+| [`ObjectMap`](core/src/main/java/ru/snake/primitive/map/ObjectMap.java) | Generic HashMap from `K` to `V` with linear probing; implements `Map<K, V>` |
 
 ## Quick Start
 
@@ -63,20 +63,3 @@ java -jar benchmarks/target/primitive-benchmarks-0.0.1-SNAPSHOT-benchmarks.jar
 # Run memory footprint analysis
 java -jar memory/target/primitive-memory-0.0.1-SNAPSHOT-standalone.jar
 ```
-
-See [docs/setup.md](docs/setup.md) for development environment details.
-
-## Documentation
-
-| Topic | Document |
-|-------|----------|
-| Development setup | [docs/setup.md](docs/setup.md) |
-| Architecture & design | [docs/architecture.md](docs/architecture.md) |
-| Coding conventions | [docs/coding-standards.md](docs/coding-standards.md) |
-| Testing strategy | [docs/testing.md](docs/testing.md) |
-| Benchmark results | [docs/benchmark-results.md](docs/benchmark-results.md) |
-| Deployment & operations | [docs/deployment.md](docs/deployment.md) |
-
-## Maintainer
-
-[snake](mailto:snake@example.com)

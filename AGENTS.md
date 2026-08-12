@@ -11,6 +11,8 @@ This file provides guidance for AI agents and human contributors working on this
 | **Architecture & design** | [docs/architecture.md](./docs/architecture.md) |
 | **Coding conventions** | [docs/coding-standards.md](./docs/coding-standards.md) |
 | **Testing strategy** | [docs/testing.md](./docs/testing.md) |
+| **Benchmark results** | [docs/benchmark-results.md](./docs/benchmark-results.md) |
+| **Memory footprint** | [docs/memory-benchmarks.md](./docs/memory-benchmarks.md) |
 | **Deployment & operations** | [docs/deployment.md](./docs/deployment.md) |
 
 ## Agent Instructions

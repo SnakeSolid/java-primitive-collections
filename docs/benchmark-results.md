@@ -18,6 +18,8 @@ JMH micro-benchmarks comparing each `primitive-collections` class against its `j
 
 **Higher ops/ms = faster.** A ratio > 1.0x means the custom class is faster than the Java reference.
 
+For memory footprint comparisons, see [Memory Benchmarks](./memory-benchmarks.md).
+
 ## Quick Reference
 
 | Class | Java Reference | Avg Speedup | Winner On |

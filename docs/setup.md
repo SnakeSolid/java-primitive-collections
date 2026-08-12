@@ -36,7 +36,7 @@ primitive-collections/
 ├── core/                         # Core module — production code + unit tests
 │   ├── pom.xml
 │   └── src/
-│       ├── main/java/ru/snake/collections/
+│       ├── main/java/ru/snake/primitive/
 │       │   ├── set/
 │       │   │   ├── IntBitSet.java
 │       │   │   ├── IntSet.java
@@ -45,7 +45,7 @@ primitive-collections/
 │       │       ├── IntToIntMap.java
 │       │       ├── ObjectToIntMap.java
 │       │       └── ObjectMap.java
-│       └── test/java/ru/snake/collections/
+│       └── test/java/ru/snake/primitive/
 │           ├── set/
 │           │   ├── IntBitSetTest.java
 │           │   ├── IntSetShiftTest.java
@@ -60,7 +60,7 @@ primitive-collections/
 │               └── ObjectToIntMapTest.java
 └── benchmarks/                   # Benchmarks module — JMH micro-benchmarks
     ├── pom.xml
-    └── src/main/java/ru/snake/collections/benchmark/
+    └── src/main/java/ru/snake/primitive/benchmark/
         ├── IntBitSetBenchmark.java
         ├── IntSetBenchmark.java
         ├── IntToIntMapBenchmark.java
