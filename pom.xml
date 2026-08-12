@@ -13,6 +13,7 @@
 	<modules>
 		<module>core</module>
 		<module>benchmarks</module>
+		<module>memory</module>
 	</modules>
 
 	<properties>
@@ -21,6 +22,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jmh.version>1.37</jmh.version>
 		<junit.version>5.10.2</junit.version>
+		<jol.version>0.17</jol.version>
 	</properties>
 
 	<dependencyManagement>
@@ -42,6 +44,12 @@
 				<artifactId>jmh-generator-annprocess</artifactId>
 				<version>${jmh.version}</version>
 				<scope>provided</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.openjdk.jol</groupId>
+				<artifactId>jol-core</artifactId>
+				<version>${jol.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

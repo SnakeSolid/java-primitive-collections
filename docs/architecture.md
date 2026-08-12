@@ -12,8 +12,9 @@ The project is a multi-module Maven build:
 |--------|----------|-------------|
 | `core` | `ru.snake.primitive:primitive-core` | Production code and unit tests |
 | `benchmarks` | `ru.snake.primitive:primitive-benchmarks` | JMH micro-benchmarks; depends on `core` |
+| `memory` | `ru.snake.primitive:primitive-memory` | JOL-based memory footprint analysis; depends on `core` |
 
-Benchmark code is isolated in its own module to keep JMH dependencies out of the core library and to produce a separate runnable JAR.
+Benchmark code is isolated in its own module to keep JMH dependencies out of the core library and to produce a separate runnable JAR. The memory analysis module is similarly isolated with JOL, and produces a standalone shaded JAR for measuring collection memory usage.
 
 ## Package Structure
 

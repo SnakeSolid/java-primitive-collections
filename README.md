@@ -59,6 +59,9 @@ System.out.println(map2.get("Alice")); // Person{name=Alice}
 
 # Run benchmarks
 java -jar benchmarks/target/primitive-benchmarks-0.0.1-SNAPSHOT-benchmarks.jar
+
+# Run memory footprint analysis
+java -jar memory/target/primitive-memory-0.0.1-SNAPSHOT-standalone.jar
 ```
 
 See [docs/setup.md](docs/setup.md) for development environment details.
