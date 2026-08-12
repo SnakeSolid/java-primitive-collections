@@ -28,3 +28,4 @@
 - Keep methods short — extract helpers for non-trivial logic.
 - Classes are `final` unless designed for extension.
 - Imports: standard library (`java.*`) first, then project imports (`ru.snake.primitive.*`), grouped and sorted alphabetically within each group.
+- Curly braces are **mandatory** on `if`, `for`, `while`, `do`, `switch`, and `try` blocks — even for single-statement bodies.
