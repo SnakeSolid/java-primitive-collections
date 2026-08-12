@@ -3,7 +3,7 @@
 ## General
 
 - **Java 21** features are available and should be used where appropriate (e.g., pattern matching for `instanceof`, `switch` expressions).
-- **No external dependencies** beyond JUnit for tests and JMH for benchmarks.
+- **No external dependencies** beyond JUnit for tests, JMH for benchmarks, and JOL for memory analysis. All managed in the parent POM's `<dependencyManagement>`.
 - **No null keys or values** — throw `NullPointerException` explicitly.
 
 ## Naming

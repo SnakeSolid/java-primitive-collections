@@ -21,6 +21,9 @@
 
 # Run benchmarks
 ./mvnw package && java -jar benchmarks/target/primitive-benchmarks-0.0.1-SNAPSHOT-benchmarks.jar
+
+# Run memory analysis
+java -jar memory/target/primitive-memory-0.0.1-SNAPSHOT-standalone.jar
 ```
 
 ## Project Layout
@@ -66,12 +69,15 @@ primitive-collections/
         └── ObjectToIntMapBenchmark.java
 ```
 
+```
+
 ## Multi-Module Structure
 
 | Module | Artifact | Purpose |
 |--------|----------|---------|
 | `core` | `ru.snake.primitive:primitive-core` | Production code and unit tests |
 | `benchmarks` | `ru.snake.primitive:primitive-benchmarks` | JMH benchmarks, depends on `core` |
+| `memory` | `ru.snake.primitive:primitive-memory` | Memory footprint analysis via JOL, depends on `core` |
 
 ## IDE
 
