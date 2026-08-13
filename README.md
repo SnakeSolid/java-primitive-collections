@@ -1,5 +1,7 @@
 # Primitive Collections
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Lightweight collections for Java — no dependencies, no boxing overhead.
 
 ## Classes
@@ -63,3 +65,7 @@ java -jar benchmarks/target/primitive-benchmarks-0.0.1-SNAPSHOT-benchmarks.jar
 # Run memory footprint analysis
 java -jar memory/target/primitive-memory-0.0.1-SNAPSHOT-standalone.jar
 ```
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
