@@ -92,15 +92,14 @@ public final class IntSet extends AbstractSet<Integer> {
 	 * Constructs an empty set whose initial table size is the smallest power of
 	 * two not less than {@code initialCapacity}.
 	 *
-	 * @param initialCapacity
-	 *            the initial capacity
-	 * @throws IllegalArgumentException
-	 *             if {@code initialCapacity} is negative
+	 * @param initialCapacity the initial capacity
+	 * @throws IllegalArgumentException if {@code initialCapacity} is negative
 	 */
 	public IntSet(int initialCapacity) {
 		if (initialCapacity < 0) {
 			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
 		}
+
 		int cap = tableSizeFor(initialCapacity);
 		keys = new int[cap];
 		values = new int[cap];
@@ -140,11 +139,14 @@ public final class IntSet extends AbstractSet<Integer> {
 		int result = find(key);
 		if (result >= 0) {
 			int index = result;
+
 			if ((values[index] & bit) != 0) {
 				return false; // already present
 			}
+
 			values[index] |= bit;
 			size++;
+
 			return true;
 		}
 
@@ -177,6 +179,7 @@ public final class IntSet extends AbstractSet<Integer> {
 		if (index < 0) {
 			return false;
 		}
+
 		if ((values[index] & bit) == 0) {
 			return false;
 		}
@@ -202,6 +205,7 @@ public final class IntSet extends AbstractSet<Integer> {
 		if (!(element instanceof Integer)) {
 			return false;
 		}
+
 		int i = (Integer) element;
 
 		int key = keyOf(i);
@@ -211,6 +215,7 @@ public final class IntSet extends AbstractSet<Integer> {
 		if (index < 0) {
 			return false;
 		}
+
 		return (values[index] & bit) != 0;
 	}
 
@@ -241,18 +246,22 @@ public final class IntSet extends AbstractSet<Integer> {
 	public Object[] toArray() {
 		Object[] result = new Object[size];
 		int idx = 0;
+
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] == -1) {
 				continue;
 			}
+
 			int base = keys[i];
 			int word = values[i];
+
 			while (word != 0) {
 				int bit = Integer.numberOfTrailingZeros(word);
 				result[idx++] = base + bit;
 				word &= ~(1 << bit);
 			}
 		}
+
 		return result;
 	}
 
@@ -261,25 +270,32 @@ public final class IntSet extends AbstractSet<Integer> {
 	public <T> T[] toArray(T[] a) {
 		Object[] collected = new Object[size];
 		int idx = 0;
+
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] == -1) {
 				continue;
 			}
+
 			int base = keys[i];
 			int word = values[i];
+
 			while (word != 0) {
 				int bit = Integer.numberOfTrailingZeros(word);
 				collected[idx++] = base + bit;
 				word &= ~(1 << bit);
 			}
 		}
+
 		if (a.length >= size) {
 			System.arraycopy(collected, 0, a, 0, size);
+
 			if (a.length > size) {
 				a[size] = null;
 			}
+
 			return a;
 		}
+
 		return (T[]) Arrays.copyOf(collected, size, a.getClass());
 	}
 
@@ -290,28 +306,33 @@ public final class IntSet extends AbstractSet<Integer> {
 				return false;
 			}
 		}
+
 		return true;
 	}
 
 	@Override
 	public boolean addAll(Collection<? extends Integer> c) {
 		boolean changed = false;
+
 		for (Integer e : c) {
 			if (add(e)) {
 				changed = true;
 			}
 		}
+
 		return changed;
 	}
 
 	@Override
 	public boolean removeAll(Collection<?> c) {
 		boolean changed = false;
+
 		for (Object e : c) {
 			if (remove(e)) {
 				changed = true;
 			}
 		}
+
 		return changed;
 	}
 
@@ -325,21 +346,27 @@ public final class IntSet extends AbstractSet<Integer> {
 		// entries from higher indices into the hole – those higher indices
 		// have already been processed in this loop.
 		for (int i = keys.length - 1; i >= 0; i--) {
-			if (keys[i] == -1)
+			if (keys[i] == -1) {
 				continue;
+			}
+
 			int base = keys[i];
 			int word = values[i];
 			int newWord = word;
+
 			while (word != 0) {
 				int bit = Integer.numberOfTrailingZeros(word);
 				int element = base + bit;
+
 				if (!c.contains(element)) {
 					newWord &= ~(1 << bit);
 					size--;
 					changed = true;
 				}
+
 				word &= ~(1 << bit);
 			}
+
 			if (newWord == 0) {
 				keys[i] = -1;
 				values[i] = 0;
@@ -354,31 +381,40 @@ public final class IntSet extends AbstractSet<Integer> {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (!(o instanceof java.util.Set<?>))
+		} else if (!(o instanceof java.util.Set<?>)) {
 			return false;
+		}
+
 		java.util.Set<?> that = (java.util.Set<?>) o;
-		if (that.size() != this.size())
+
+		if (that.size() != this.size()) {
 			return false;
+		}
+
 		return containsAll(that);
 	}
 
 	@Override
 	public int hashCode() {
 		int h = 0;
+
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] == -1) {
 				continue;
 			}
+
 			int base = keys[i];
 			int word = values[i];
+
 			while (word != 0) {
 				int bit = Integer.numberOfTrailingZeros(word);
 				h += Integer.hashCode(base + bit);
 				word &= ~(1 << bit);
 			}
 		}
+
 		return h;
 	}
 
@@ -387,21 +423,28 @@ public final class IntSet extends AbstractSet<Integer> {
 		StringBuilder sb = new StringBuilder();
 		sb.append('[');
 		boolean first = true;
+
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] == -1) {
 				continue;
 			}
+
 			int base = keys[i];
 			int word = values[i];
+
 			while (word != 0) {
 				int bit = Integer.numberOfTrailingZeros(word);
-				if (!first)
+
+				if (!first) {
 					sb.append(", ");
+				}
+
 				sb.append(base + bit);
 				first = false;
 				word &= ~(1 << bit);
 			}
 		}
+
 		sb.append(']');
 		return sb.toString();
 	}
@@ -445,8 +488,10 @@ public final class IntSet extends AbstractSet<Integer> {
 			if (keys[index] == key) {
 				return index;
 			}
+
 			index = (index + 1) & mask;
 		}
+
 		// key not found; index is the first empty slot
 		return -(index + 1);
 	}
@@ -472,12 +517,15 @@ public final class IntSet extends AbstractSet<Integer> {
 			if (oldKeys[i] == -1) {
 				continue;
 			}
+
 			int k = oldKeys[i];
 			int v = oldValues[i];
 			int index = hash(k) & mask;
+
 			while (keys[index] != -1) {
 				index = (index + 1) & mask;
 			}
+
 			keys[index] = k;
 			values[index] = v;
 			occupiedCount++;
@@ -557,8 +605,10 @@ public final class IntSet extends AbstractSet<Integer> {
 			if (other.keys[i] == -1) {
 				continue;
 			}
+
 			int base = other.keys[i];
 			int word = other.values[i];
+
 			while (word != 0) {
 				int bit = Integer.numberOfTrailingZeros(word);
 				add(base + bit);
@@ -575,12 +625,16 @@ public final class IntSet extends AbstractSet<Integer> {
 
 		/** Current table index being scanned. */
 		private int idx = 0;
+
 		/** Remaining bits in values[idx] that haven't been visited yet. */
 		private int remaining = 0;
+
 		/** Whether there is a next element. */
 		private boolean hasMore = false;
+
 		/** The next element value to return. */
 		private int nextValue = 0;
+
 		/**
 		 * The element returned by the last call to {@code next()}, or
 		 * {@code Integer.MIN_VALUE} if none.
@@ -620,8 +674,10 @@ public final class IntSet extends AbstractSet<Integer> {
 			if (!hasMore) {
 				throw new java.util.NoSuchElementException();
 			}
+
 			int result = nextValue;
 			lastValue = result;
+
 			if (remaining != 0) {
 				// More bits in this slot
 				int bit = Integer.numberOfTrailingZeros(remaining);
@@ -633,6 +689,7 @@ public final class IntSet extends AbstractSet<Integer> {
 				idx++;
 				findNext();
 			}
+
 			return result;
 		}
 
@@ -641,6 +698,7 @@ public final class IntSet extends AbstractSet<Integer> {
 			if (lastValue == Integer.MIN_VALUE) {
 				throw new IllegalStateException();
 			}
+
 			IntSet.this.remove(lastValue);
 			remaining = 0;
 			findNext();

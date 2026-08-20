@@ -23,10 +23,8 @@ import java.util.function.BiFunction;
  * This class is not thread-safe.
  * </p>
  *
- * @param <K>
- *            the key type
- * @param <V>
- *            the value type
+ * @param <K> the key type
+ * @param <V> the value type
  */
 public final class ObjectMap<K, V> implements Map<K, V> {
 
@@ -66,16 +64,15 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	 * Constructs an empty map whose initial table size is the smallest power of
 	 * two not less than {@code initialCapacity}.
 	 *
-	 * @param initialCapacity
-	 *            the initial capacity
-	 * @throws IllegalArgumentException
-	 *             if {@code initialCapacity} is negative
+	 * @param initialCapacity the initial capacity
+	 * @throws IllegalArgumentException if {@code initialCapacity} is negative
 	 */
 	@SuppressWarnings("unchecked")
 	public ObjectMap(int initialCapacity) {
 		if (initialCapacity < 0) {
 			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
 		}
+
 		int cap = tableSizeFor(initialCapacity);
 		keys = (K[]) new Object[cap];
 		values = (V[]) new Object[cap];
@@ -89,10 +86,8 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	 * Associates the specified value with the specified key. If the key is
 	 * already present, the old value is replaced.
 	 *
-	 * @param key
-	 *            the key
-	 * @param value
-	 *            the value
+	 * @param key   the key
+	 * @param value the value
 	 * @return the previous value associated with {@code key}, or {@code null}
 	 *         if there was no mapping (use {@link #containsKey} to
 	 *         disambiguate)
@@ -127,8 +122,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	 * Returns the value to which the specified key is mapped, or {@code null}
 	 * if this map contains no mapping for the key.
 	 *
-	 * @param key
-	 *            the key whose associated value is to be returned
+	 * @param key the key whose associated value is to be returned
 	 * @return the value, or {@code null} if no mapping exists (use
 	 *         {@link #containsKey} to disambiguate)
 	 */
@@ -143,10 +137,8 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	 * Returns the value to which the specified key is mapped, or
 	 * {@code defaultValue} if this map contains no mapping for the key.
 	 *
-	 * @param key
-	 *            the key whose associated value is to be returned
-	 * @param defaultValue
-	 *            the value to return if no mapping exists
+	 * @param key          the key whose associated value is to be returned
+	 * @param defaultValue the value to return if no mapping exists
 	 * @return the value, or {@code defaultValue} if no mapping exists
 	 */
 	@Override
@@ -154,6 +146,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		if (key == null) {
 			return defaultValue;
 		}
+
 		int index = find(key);
 		return index < 0 ? defaultValue : values[index];
 	}
@@ -162,8 +155,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	 * Returns {@code true} if this map contains a mapping for the specified
 	 * key.
 	 *
-	 * @param key
-	 *            the key whose presence is tested
+	 * @param key the key whose presence is tested
 	 * @return {@code true} if the key is present
 	 */
 	@Override
@@ -171,6 +163,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		if (key == null) {
 			return false;
 		}
+
 		return find(key) >= 0;
 	}
 
@@ -178,8 +171,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	 * Returns {@code true} if this map maps one or more keys to the specified
 	 * value.
 	 *
-	 * @param value
-	 *            the value whose presence is tested
+	 * @param value the value whose presence is tested
 	 * @return {@code true} if the value is present
 	 */
 	@Override
@@ -187,6 +179,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		if (value == null) {
 			return false;
 		}
+
 		return containsValue0(value);
 	}
 
@@ -196,14 +189,14 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 				return true;
 			}
 		}
+
 		return false;
 	}
 
 	/**
 	 * Removes the mapping for the specified key (if present).
 	 *
-	 * @param key
-	 *            the key to remove
+	 * @param key the key to remove
 	 * @return the previous value, or {@code null} if no mapping existed
 	 */
 	@Override
@@ -211,6 +204,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		if (key == null) {
 			return null;
 		}
+
 		return remove0(key);
 	}
 
@@ -259,6 +253,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			keys[i] = null;
 			values[i] = null;
 		}
+
 		size = 0;
 	}
 
@@ -272,6 +267,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	@Override
 	public void putAll(Map<? extends K, ? extends V> m) {
 		Objects.requireNonNull(m, "map must not be null");
+
 		for (Map.Entry<? extends K, ? extends V> e : m.entrySet()) {
 			put(e.getKey(), e.getValue());
 		}
@@ -299,10 +295,12 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 				if (o == null) {
 					return false;
 				}
+
 				int index = find(o);
 				if (index < 0) {
 					return false;
 				}
+
 				size--;
 				keys[index] = null;
 				values[index] = null;
@@ -318,6 +316,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			@Override
 			public boolean retainAll(Collection<?> c) {
 				boolean changed = false;
+
 				for (int i = keys.length - 1; i >= 0; i--) {
 					if (keys[i] != null) {
 						if (!c.contains(keys[i])) {
@@ -329,6 +328,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 						}
 					}
 				}
+
 				return changed;
 			}
 
@@ -367,10 +367,12 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 				if (!(o instanceof Map.Entry<?, ?>)) {
 					return false;
 				}
+
 				Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
 				if (e.getKey() == null) {
 					return false;
 				}
+
 				int index = find(e.getKey());
 				return (index >= 0
 						&& (values[index] == null ? e.getValue() == null : values[index].equals(e.getValue())));
@@ -381,18 +383,22 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 				if (!(o instanceof Map.Entry<?, ?>)) {
 					return false;
 				}
+
 				Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
 				if (e.getKey() == null) {
 					return false;
 				}
+
 				int index = find(e.getKey());
 				if (index < 0) {
 					return false;
 				}
+
 				// Only remove if the value also matches
 				if (values[index] == null ? e.getValue() != null : !values[index].equals(e.getValue())) {
 					return false;
 				}
+
 				size--;
 				keys[index] = null;
 				values[index] = null;
@@ -415,6 +421,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	@Override
 	public void forEach(BiConsumer<? super K, ? super V> action) {
 		Objects.requireNonNull(action, "action must not be null");
+
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] != null) {
 				K k = keys[i];
@@ -427,16 +434,19 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	@Override
 	public void replaceAll(BiFunction<? super K, ? super V, ? extends V> function) {
 		Objects.requireNonNull(function, "function must not be null");
+
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] == null) {
 				continue;
 			}
+
 			K k = keys[i];
 			V v = values[i];
 			V result = function.apply(k, v);
 			if (result == null) {
 				throw new NullPointerException("function must not return null");
 			}
+
 			values[i] = result;
 		}
 	}
@@ -449,10 +459,12 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		if (index >= 0) {
 			return values[index];
 		}
+
 		V newValue = mappingFunction.apply(key);
 		if (newValue == null) {
 			throw new NullPointerException("mappingFunction must not return null");
 		}
+
 		put(key, newValue);
 		return newValue;
 	}
@@ -568,6 +580,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			}
 			index = (index + 1) & mask;
 		}
+
 		// key not found; index is the first empty slot
 		return -(index + 1);
 	}
@@ -632,12 +645,15 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			if (oldKeys[i] == null) {
 				continue;
 			}
+
 			K k = oldKeys[i];
 			V v = oldValues[i];
 			int index = hash(k) & mask;
+
 			while (keys[index] != null) {
 				index = (index + 1) & mask;
 			}
+
 			keys[index] = k;
 			values[index] = v;
 			size++;
@@ -671,16 +687,20 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		StringBuilder sb = new StringBuilder();
 		sb.append('{');
 		boolean first = true;
+
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] == null) {
 				continue;
 			}
+
 			if (!first) {
 				sb.append(", ");
 			}
+
 			sb.append(keys[i]).append('=').append(values[i]);
 			first = false;
 		}
+
 		sb.append('}');
 		return sb.toString();
 	}
@@ -696,14 +716,17 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	private final class KeyIterator implements Iterator<K> {
 
 		private int index = 0;
+
 		private int lastIndex = -1;
 
 		@Override
 		public boolean hasNext() {
 			for (int i = index; i < keys.length; i++) {
-				if (keys[i] != null)
+				if (keys[i] != null) {
 					return true;
+				}
 			}
+
 			return false;
 		}
 
@@ -712,9 +735,11 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			while (index < keys.length && keys[index] == null) {
 				index++;
 			}
+
 			if (index >= keys.length) {
 				throw new java.util.NoSuchElementException();
 			}
+
 			lastIndex = index;
 			return (K) keys[index++];
 		}
@@ -724,6 +749,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			if (lastIndex < 0) {
 				throw new IllegalStateException();
 			}
+
 			Object key = keys[lastIndex];
 			ObjectMap.this.remove0(key);
 			index = lastIndex;
@@ -737,14 +763,17 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	private final class ValueIterator implements Iterator<V> {
 
 		private int index = 0;
+
 		private int lastIndex = -1;
 
 		@Override
 		public boolean hasNext() {
 			for (int i = index; i < keys.length; i++) {
-				if (keys[i] != null)
+				if (keys[i] != null) {
 					return true;
+				}
 			}
+
 			return false;
 		}
 
@@ -753,9 +782,11 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			while (index < keys.length && keys[index] == null) {
 				index++;
 			}
+
 			if (index >= keys.length) {
 				throw new java.util.NoSuchElementException();
 			}
+
 			lastIndex = index;
 			return (V) values[index++];
 		}
@@ -765,6 +796,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			if (lastIndex < 0) {
 				throw new IllegalStateException();
 			}
+
 			Object key = keys[lastIndex];
 			ObjectMap.this.remove0(key);
 			index = lastIndex;
@@ -778,14 +810,17 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	private final class EntryIterator implements Iterator<Map.Entry<K, V>> {
 
 		private int index = 0;
+
 		private int lastIndex = -1;
 
 		@Override
 		public boolean hasNext() {
 			for (int i = index; i < keys.length; i++) {
-				if (keys[i] != null)
+				if (keys[i] != null) {
 					return true;
+				}
 			}
+
 			return false;
 		}
 
@@ -794,9 +829,11 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			while (index < keys.length && keys[index] == null) {
 				index++;
 			}
+
 			if (index >= keys.length) {
 				throw new java.util.NoSuchElementException();
 			}
+
 			lastIndex = index;
 			return new KeyValueEntry((K) keys[index], (V) values[index++]);
 		}
@@ -806,6 +843,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 			if (lastIndex < 0) {
 				throw new IllegalStateException();
 			}
+
 			Object key = keys[lastIndex];
 			ObjectMap.this.remove0(key);
 			index = lastIndex;
@@ -823,6 +861,7 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 	private final class KeyValueEntry implements Map.Entry<K, V> {
 
 		private final K key;
+
 		private V value;
 
 		KeyValueEntry(K key, V value) {
@@ -844,11 +883,13 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		public V setValue(V value) {
 			Objects.requireNonNull(value, "value must not be null");
 			V old = this.value;
+
 			// Find and update in the backing array
 			int idx = find(key);
 			if (idx >= 0) {
 				values[idx] = value;
 			}
+
 			this.value = value;
 			return old;
 		}
@@ -857,10 +898,10 @@ public final class ObjectMap<K, V> implements Map<K, V> {
 		public boolean equals(Object o) {
 			if (this == o) {
 				return true;
-			}
-			if (!(o instanceof Map.Entry<?, ?>)) {
+			} else if (!(o instanceof Map.Entry<?, ?>)) {
 				return false;
 			}
+
 			Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
 			return ((key == null ? e.getKey() == null : key.equals(e.getKey()))
 					&& (value == null ? e.getValue() == null : value.equals(e.getValue())));

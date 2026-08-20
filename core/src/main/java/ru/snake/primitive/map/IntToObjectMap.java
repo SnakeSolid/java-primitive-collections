@@ -26,8 +26,7 @@ import java.util.function.BiFunction;
  * This class is not thread-safe.
  * </p>
  *
- * @param <V>
- *            the value type
+ * @param <V> the value type
  */
 public final class IntToObjectMap<V> implements Map<Integer, V> {
 
@@ -74,15 +73,14 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 	 * Constructs an empty map whose initial table size is the smallest power of
 	 * two not less than {@code initialCapacity}.
 	 *
-	 * @param initialCapacity
-	 *            the initial capacity
-	 * @throws IllegalArgumentException
-	 *             if {@code initialCapacity} is negative
+	 * @param initialCapacity the initial capacity
+	 * @throws IllegalArgumentException if {@code initialCapacity} is negative
 	 */
 	public IntToObjectMap(int initialCapacity) {
 		if (initialCapacity < 0) {
 			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
 		}
+
 		int cap = tableSizeFor(initialCapacity);
 		keys = new int[cap];
 		values = new Object[cap];
@@ -97,10 +95,8 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 	 * Associates the specified value with the specified key. If the key is
 	 * already present, the old value is replaced.
 	 *
-	 * @param key
-	 *            the key
-	 * @param value
-	 *            the value
+	 * @param key   the key
+	 * @param value the value
 	 * @return the previous value associated with {@code key}, or {@code null}
 	 *         if there was no mapping
 	 */
@@ -133,8 +129,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 	 * Returns the value to which the specified key is mapped, or {@code null}
 	 * if this map contains no mapping for the key.
 	 *
-	 * @param key
-	 *            the key whose associated value is to be returned
+	 * @param key the key whose associated value is to be returned
 	 * @return the value, or {@code null} if no mapping exists (use
 	 *         {@link #containsKey} to disambiguate)
 	 */
@@ -148,10 +143,8 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 	 * Returns the value to which the specified key is mapped, or
 	 * {@code defaultValue} if this map contains no mapping for the key.
 	 *
-	 * @param key
-	 *            the key whose associated value is to be returned
-	 * @param defaultValue
-	 *            the value to return if no mapping exists
+	 * @param key          the key whose associated value is to be returned
+	 * @param defaultValue the value to return if no mapping exists
 	 * @return the value, or {@code defaultValue} if no mapping exists
 	 */
 	@SuppressWarnings("unchecked")
@@ -164,8 +157,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 	 * Returns {@code true} if this map contains a mapping for the specified
 	 * key.
 	 *
-	 * @param key
-	 *            the key whose presence is tested
+	 * @param key the key whose presence is tested
 	 * @return {@code true} if the key is present
 	 */
 	public boolean containsKey(int key) {
@@ -181,8 +173,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 	 * Returns {@code true} if this map maps one or more keys to the specified
 	 * value.
 	 *
-	 * @param value
-	 *            the value whose presence is tested
+	 * @param value the value whose presence is tested
 	 * @return {@code true} if the value is present
 	 */
 	public boolean containsValue(Object value) {
@@ -195,14 +186,14 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 				return true;
 			}
 		}
+
 		return false;
 	}
 
 	/**
 	 * Removes the mapping for the specified key (if present).
 	 *
-	 * @param key
-	 *            the key to remove
+	 * @param key the key to remove
 	 * @return the previous value, or {@code null} if no mapping existed
 	 */
 	public V remove(int key) {
@@ -214,6 +205,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 		if (index < 0) {
 			return null;
 		}
+
 		@SuppressWarnings("unchecked")
 		V old = (V) values[index];
 		size--;
@@ -272,6 +264,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 		if (key == null || value == null) {
 			throw new NullPointerException();
 		}
+
 		int k = key;
 		int mask = keys.length - 1;
 		int index = hash(k) & mask;
@@ -281,8 +274,10 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 				@SuppressWarnings("unchecked")
 				V old = (V) values[index];
 				values[index] = value;
+
 				return old;
 			}
+
 			index = (index + 1) & mask;
 		}
 
@@ -303,6 +298,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 		if (!(key instanceof Integer)) {
 			return null;
 		}
+
 		int index = find((Integer) key);
 		return index < 0 ? null : (V) values[index];
 	}
@@ -313,6 +309,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 		if (!(key instanceof Integer)) {
 			return defaultValue;
 		}
+
 		int index = find((Integer) key);
 		return index < 0 ? defaultValue : (V) values[index];
 	}
@@ -323,10 +320,12 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 		if (!(key instanceof Integer)) {
 			return null;
 		}
+
 		int index = find((Integer) key);
 		if (index < 0) {
 			return null;
 		}
+
 		V old = (V) values[index];
 		size--;
 		values[index] = EMPTY_SLOT;
@@ -357,10 +356,12 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 				if (!(o instanceof Integer)) {
 					return false;
 				}
+
 				int index = find((Integer) o);
 				if (index < 0) {
 					return false;
 				}
+
 				size--;
 				values[index] = EMPTY_SLOT;
 				keys[index] = 0;
@@ -376,6 +377,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 			@Override
 			public boolean retainAll(Collection<?> c) {
 				boolean changed = false;
+
 				for (int i = keys.length - 1; i >= 0; i--) {
 					if (values[i] != EMPTY_SLOT) {
 						if (!c.contains(keys[i])) {
@@ -387,6 +389,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 						}
 					}
 				}
+
 				return changed;
 			}
 
@@ -425,10 +428,12 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 				if (!(o instanceof Map.Entry<?, ?>)) {
 					return false;
 				}
+
 				Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
 				if (!(e.getKey() instanceof Integer)) {
 					return false;
 				}
+
 				int index = find((Integer) e.getKey());
 				return (index >= 0 && Objects.equals(e.getValue(), values[index]));
 			}
@@ -438,18 +443,22 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 				if (!(o instanceof Map.Entry<?, ?>)) {
 					return false;
 				}
+
 				Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
 				if (!(e.getKey() instanceof Integer)) {
 					return false;
 				}
+
 				int index = find((Integer) e.getKey());
 				if (index < 0) {
 					return false;
 				}
+
 				// Only remove if the value also matches
 				if (!Objects.equals(e.getValue(), values[index])) {
 					return false;
 				}
+
 				size--;
 				values[index] = EMPTY_SLOT;
 				keys[index] = 0;
@@ -476,14 +485,17 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 	private final class KeyIterator implements Iterator<Integer> {
 
 		private int index = 0;
+
 		private int lastIndex = -1;
 
 		@Override
 		public boolean hasNext() {
 			for (int i = index; i < keys.length; i++) {
-				if (values[i] != EMPTY_SLOT)
+				if (values[i] != EMPTY_SLOT) {
 					return true;
+				}
 			}
+
 			return false;
 		}
 
@@ -492,9 +504,11 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 			while (index < keys.length && values[index] == EMPTY_SLOT) {
 				index++;
 			}
+
 			if (index >= keys.length) {
 				throw new java.util.NoSuchElementException();
 			}
+
 			lastIndex = index;
 			return keys[index++];
 		}
@@ -504,6 +518,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 			if (lastIndex < 0) {
 				throw new IllegalStateException();
 			}
+
 			int key = keys[lastIndex];
 			IntToObjectMap.this.remove0(key);
 			// After shiftBack, re-sync from current position
@@ -518,14 +533,17 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 	private final class ValueIterator implements Iterator<V> {
 
 		private int index = 0;
+
 		private int lastIndex = -1;
 
 		@Override
 		public boolean hasNext() {
 			for (int i = index; i < keys.length; i++) {
-				if (values[i] != EMPTY_SLOT)
+				if (values[i] != EMPTY_SLOT) {
 					return true;
+				}
 			}
+
 			return false;
 		}
 
@@ -535,9 +553,11 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 			while (index < keys.length && values[index] == EMPTY_SLOT) {
 				index++;
 			}
+
 			if (index >= keys.length) {
 				throw new java.util.NoSuchElementException();
 			}
+
 			lastIndex = index;
 			return (V) values[index++];
 		}
@@ -547,6 +567,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 			if (lastIndex < 0) {
 				throw new IllegalStateException();
 			}
+
 			int key = keys[lastIndex];
 			IntToObjectMap.this.remove0(key);
 			index = lastIndex;
@@ -560,14 +581,17 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 	private final class EntryIterator implements Iterator<Map.Entry<Integer, V>> {
 
 		private int index = 0;
+
 		private int lastIndex = -1;
 
 		@Override
 		public boolean hasNext() {
 			for (int i = index; i < keys.length; i++) {
-				if (values[i] != EMPTY_SLOT)
+				if (values[i] != EMPTY_SLOT) {
 					return true;
+				}
 			}
+
 			return false;
 		}
 
@@ -577,9 +601,11 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 			while (index < keys.length && values[index] == EMPTY_SLOT) {
 				index++;
 			}
+
 			if (index >= keys.length) {
 				throw new java.util.NoSuchElementException();
 			}
+
 			lastIndex = index;
 			return new IntObjectEntry(keys[index], (V) values[index++]);
 		}
@@ -589,6 +615,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 			if (lastIndex < 0) {
 				throw new IllegalStateException();
 			}
+
 			int key = keys[lastIndex];
 			IntToObjectMap.this.remove0(key);
 			index = lastIndex;
@@ -599,6 +626,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 	@Override
 	public void forEach(BiConsumer<? super Integer, ? super V> action) {
 		Objects.requireNonNull(action);
+
 		for (int i = 0; i < keys.length; i++) {
 			if (values[i] != EMPTY_SLOT) {
 				@SuppressWarnings("unchecked")
@@ -611,16 +639,20 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 	@Override
 	public void replaceAll(BiFunction<? super Integer, ? super V, ? extends V> function) {
 		Objects.requireNonNull(function);
+
 		for (int i = 0; i < keys.length; i++) {
 			if (values[i] == EMPTY_SLOT) {
 				continue;
 			}
+
 			@SuppressWarnings("unchecked")
 			V oldValue = (V) values[i];
 			V result = function.apply(keys[i], oldValue);
+
 			if (result == null) {
 				throw new NullPointerException();
 			}
+
 			values[i] = result;
 		}
 	}
@@ -628,19 +660,23 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 	@Override
 	public V computeIfAbsent(Integer key, java.util.function.Function<? super Integer, ? extends V> mappingFunction) {
 		Objects.requireNonNull(mappingFunction);
+
 		if (key == null) {
 			throw new NullPointerException();
 		}
+
 		int index = find(key);
 		if (index >= 0) {
 			@SuppressWarnings("unchecked")
 			V v = (V) values[index];
 			return v;
 		}
+
 		V newValue = mappingFunction.apply(key);
 		if (newValue == null) {
 			throw new NullPointerException();
 		}
+
 		put(key, newValue);
 		return newValue;
 	}
@@ -648,13 +684,16 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 	@Override
 	public V computeIfPresent(Integer key, BiFunction<? super Integer, ? super V, ? extends V> remappingFunction) {
 		Objects.requireNonNull(remappingFunction);
+
 		if (key == null) {
 			throw new NullPointerException();
 		}
+
 		int index = find(key);
 		if (index < 0) {
 			return null;
 		}
+
 		@SuppressWarnings("unchecked")
 		V newValue = remappingFunction.apply(key, (V) values[index]);
 		if (newValue == null) {
@@ -664,6 +703,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 			shiftBack(index);
 			return null;
 		}
+
 		values[index] = newValue;
 		return newValue;
 	}
@@ -671,9 +711,11 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 	@Override
 	public V compute(Integer key, BiFunction<? super Integer, ? super V, ? extends V> remappingFunction) {
 		Objects.requireNonNull(remappingFunction);
+
 		if (key == null) {
 			throw new NullPointerException();
 		}
+
 		int index = find(key);
 		@SuppressWarnings("unchecked")
 		V current = index >= 0 ? (V) values[index] : null;
@@ -685,8 +727,10 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 				keys[index] = 0;
 				shiftBack(index);
 			}
+
 			return null;
 		}
+
 		put(key, newValue);
 		return newValue;
 	}
@@ -694,14 +738,17 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 	@Override
 	public V merge(Integer key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
 		Objects.requireNonNull(remappingFunction);
+
 		if (key == null || value == null) {
 			throw new NullPointerException();
 		}
+
 		int index = find(key);
 		if (index < 0) {
 			put(key, value);
 			return value;
 		}
+
 		@SuppressWarnings("unchecked")
 		V newValue = remappingFunction.apply((V) values[index], value);
 		if (newValue == null) {
@@ -711,6 +758,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 			shiftBack(index);
 			return null;
 		}
+
 		values[index] = newValue;
 		return newValue;
 	}
@@ -746,6 +794,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 			if (keys[index] == key) {
 				return index;
 			}
+
 			index = (index + 1) & mask;
 		}
 		// key not found; index is the first empty slot
@@ -798,6 +847,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 		if (newCapacity > MAX_CAPACITY) {
 			return;
 		}
+
 		int[] oldKeys = keys;
 		Object[] oldValues = values;
 
@@ -811,12 +861,15 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 			if (oldValues[i] == EMPTY_SLOT) {
 				continue;
 			}
+
 			int k = oldKeys[i];
 			Object v = oldValues[i];
 			int index = hash(k) & mask;
+
 			while (values[index] != EMPTY_SLOT) {
 				index = (index + 1) & mask;
 			}
+
 			keys[index] = k;
 			values[index] = v;
 			size++;
@@ -850,16 +903,20 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 		StringBuilder sb = new StringBuilder();
 		sb.append('{');
 		boolean first = true;
+
 		for (int i = 0; i < keys.length; i++) {
 			if (values[i] == EMPTY_SLOT) {
 				continue;
 			}
+
 			if (!first) {
 				sb.append(", ");
 			}
+
 			sb.append(keys[i]).append('=').append(values[i]);
 			first = false;
 		}
+
 		sb.append('}');
 		return sb.toString();
 	}
@@ -874,6 +931,7 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 	private final class IntObjectEntry implements Map.Entry<Integer, V> {
 
 		private final int key;
+
 		private V value;
 
 		IntObjectEntry(int key, V value) {
@@ -895,11 +953,13 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 		public V setValue(V value) {
 			Objects.requireNonNull(value);
 			V old = this.value;
+
 			// Find and update in the backing array
 			int idx = find(key);
 			if (idx >= 0) {
 				values[idx] = value;
 			}
+
 			this.value = value;
 			return old;
 		}
@@ -908,11 +968,12 @@ public final class IntToObjectMap<V> implements Map<Integer, V> {
 		public boolean equals(Object o) {
 			if (this == o) {
 				return true;
-			}
-			if (!(o instanceof Map.Entry<?, ?>)) {
+			} else if (!(o instanceof Map.Entry<?, ?>)) {
 				return false;
 			}
+
 			Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
+
 			return (e.getKey() != null && e.getKey().equals(key) && Objects.equals(e.getValue(), value));
 		}
 

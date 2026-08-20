@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
+
 import ru.snake.primitive.map.IntToIntMap;
 
 /**
@@ -22,8 +23,7 @@ import ru.snake.primitive.map.IntToIntMap;
  * This class is not thread-safe.
  * </p>
  *
- * @param <E>
- *            the element type
+ * @param <E> the element type
  */
 public final class ObjectSet<E> extends AbstractSet<E> {
 
@@ -60,16 +60,15 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	 * Constructs an empty set whose initial table size is the smallest power of
 	 * two not less than {@code initialCapacity}.
 	 *
-	 * @param initialCapacity
-	 *            the initial capacity
-	 * @throws IllegalArgumentException
-	 *             if {@code initialCapacity} is negative
+	 * @param initialCapacity the initial capacity
+	 * @throws IllegalArgumentException if {@code initialCapacity} is negative
 	 */
 	@SuppressWarnings("unchecked")
 	public ObjectSet(int initialCapacity) {
 		if (initialCapacity < 0) {
 			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
 		}
+
 		int cap = tableSizeFor(initialCapacity);
 		keys = (E[]) new Object[cap];
 	}
@@ -81,8 +80,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	/**
 	 * Adds the specified element to this set.
 	 *
-	 * @param element
-	 *            the element to add
+	 * @param element the element to add
 	 * @return {@code true} if the set did not already contain the element
 	 */
 	public boolean add0(E element) {
@@ -108,15 +106,16 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	/**
 	 * Removes the specified element from this set.
 	 *
-	 * @param element
-	 *            the element to remove
+	 * @param element the element to remove
 	 * @return {@code true} if the element was present
 	 */
 	public boolean remove0(Object element) {
 		int index = find(element);
+
 		if (index < 0) {
 			return false;
 		}
+
 		size--;
 		keys[index] = null;
 		shiftBack(index);
@@ -126,8 +125,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	/**
 	 * Returns {@code true} if this set contains the specified element.
 	 *
-	 * @param element
-	 *            whose presence is tested
+	 * @param element whose presence is tested
 	 * @return {@code true} if present
 	 */
 	public boolean contains0(Object element) {
@@ -153,6 +151,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 		for (int i = 0; i < keys.length; i++) {
 			keys[i] = null;
 		}
+
 		size = 0;
 	}
 
@@ -186,6 +185,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 		if (element == null) {
 			return false;
 		}
+
 		return remove0(element);
 	}
 
@@ -194,6 +194,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 		if (element == null) {
 			return false;
 		}
+
 		return contains0(element);
 	}
 
@@ -206,11 +207,13 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	public Object[] toArray() {
 		Object[] result = new Object[size];
 		int idx = 0;
+
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] != null) {
 				result[idx++] = keys[i];
 			}
 		}
+
 		return result;
 	}
 
@@ -219,18 +222,23 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 	public <T> T[] toArray(T[] a) {
 		Object[] collected = new Object[size];
 		int idx = 0;
+
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] != null) {
 				collected[idx++] = keys[i];
 			}
 		}
+
 		if (a.length >= size) {
 			System.arraycopy(collected, 0, a, 0, size);
+
 			if (a.length > size) {
 				a[size] = null;
 			}
+
 			return a;
 		}
+
 		return (T[]) Arrays.copyOf(collected, size, a.getClass());
 	}
 
@@ -241,28 +249,33 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 				return false;
 			}
 		}
+
 		return true;
 	}
 
 	@Override
 	public boolean addAll(Collection<? extends E> c) {
 		boolean changed = false;
+
 		for (E e : c) {
 			if (add0(e)) {
 				changed = true;
 			}
 		}
+
 		return changed;
 	}
 
 	@Override
 	public boolean removeAll(Collection<?> c) {
 		boolean changed = false;
+
 		for (Object e : c) {
 			if (remove0(e)) {
 				changed = true;
 			}
 		}
+
 		return changed;
 	}
 
@@ -272,6 +285,7 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 		// Iterate backward so that shifting earlier slots does not affect
 		// the scan of later slots.
 		boolean changed = false;
+
 		for (int i = keys.length - 1; i >= 0; i--) {
 			if (keys[i] != null) {
 				if (!c.contains(keys[i])) {
@@ -282,29 +296,37 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 				}
 			}
 		}
+
 		return changed;
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (!(o instanceof java.util.Set<?>))
+		} else if (!(o instanceof java.util.Set<?>)) {
 			return false;
+		}
+
 		java.util.Set<?> that = (java.util.Set<?>) o;
-		if (that.size() != this.size())
+
+		if (that.size() != this.size()) {
 			return false;
+		}
+
 		return containsAll(that);
 	}
 
 	@Override
 	public int hashCode() {
 		int h = 0;
+
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] != null) {
 				h += keys[i].hashCode();
 			}
 		}
+
 		return h;
 	}
 
@@ -313,16 +335,20 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 		StringBuilder sb = new StringBuilder();
 		sb.append('[');
 		boolean first = true;
+
 		for (int i = 0; i < keys.length; i++) {
 			if (keys[i] == null) {
 				continue;
 			}
+
 			if (!first) {
 				sb.append(", ");
 			}
+
 			sb.append(keys[i]);
 			first = false;
 		}
+
 		sb.append(']');
 		return sb.toString();
 	}
@@ -360,8 +386,10 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 			if (keys[index].equals(element)) {
 				return index;
 			}
+
 			index = (index + 1) & mask;
 		}
+
 		// element not found; index is the first empty slot
 		return -(index + 1);
 	}
@@ -421,11 +449,14 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 			if (oldKeys[i] == null) {
 				continue;
 			}
+
 			E k = oldKeys[i];
 			int index = hash(k) & mask;
+
 			while (keys[index] != null) {
 				index = (index + 1) & mask;
 			}
+
 			keys[index] = k;
 			size++;
 		}
@@ -480,12 +511,15 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 			if (idx >= keys.length) {
 				throw new java.util.NoSuchElementException();
 			}
+
 			lastElement = (E) keys[idx];
 			hasLast = true;
 			idx++;
+
 			while (idx < keys.length && keys[idx] == null) {
 				idx++;
 			}
+
 			return (T) lastElement;
 		}
 
@@ -494,10 +528,13 @@ public final class ObjectSet<E> extends AbstractSet<E> {
 			if (!hasLast) {
 				throw new java.lang.IllegalStateException();
 			}
+
 			ObjectSet.this.remove0(lastElement);
+
 			while (idx < keys.length && keys[idx] == null) {
 				idx++;
 			}
+
 			lastElement = null;
 			hasLast = false;
 		}
