@@ -14,11 +14,12 @@ JUnit Jupiter 5.10.2. Run with `./mvnw test` (executed in the `core` module).
 | `ObjectSetTest` | 47 |
 | `IntToIntMapTest` | 98 |
 | `IntToIntMapShiftTest` | 16 |
+| `IntToObjectMapTest` | 97 |
 | `ObjectMapTest` | 105 |
 | `ObjectMapShiftTest` | 15 |
 | `ObjectToIntMapTest` | 121 |
 | `ObjectToIntMapShiftTest` | 15 |
-| **Total** | **533** |
+| **Total** | **645** |
 
 ## Coverage Goals
 

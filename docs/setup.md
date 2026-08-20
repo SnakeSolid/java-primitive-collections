@@ -41,10 +41,11 @@ primitive-collections/
 │       │   │   ├── IntBitSet.java
 │       │   │   ├── IntSet.java
 │       │   │   └── ObjectSet.java
-│       │   └── map/
-│       │       ├── IntToIntMap.java
-│       │       ├── ObjectToIntMap.java
-│       │       └── ObjectMap.java
+│       │       └── map/
+│       │           ├── IntToObjectMap.java
+│       │           ├── IntToIntMap.java
+│       │           ├── ObjectMap.java
+│       │           └── ObjectToIntMap.java
 │       └── test/java/ru/snake/primitive/
 │           ├── set/
 │           │   ├── IntBitSetTest.java
@@ -52,6 +53,7 @@ primitive-collections/
 │           │   ├── IntSetTest.java
 │           │   └── ObjectSetTest.java
 │           └── map/
+│               ├── IntToObjectMapTest.java
 │               ├── IntToIntMapShiftTest.java
 │               ├── IntToIntMapTest.java
 │               ├── ObjectMapShiftTest.java
@@ -69,6 +71,12 @@ primitive-collections/
         └── ObjectToIntMapBenchmark.java
 ```
 
+```
+primitive-collections/
+└── memory/                       # Memory analysis module — JOL-based footprint analysis
+    ├── pom.xml
+    └── src/main/java/ru/snake/primitive/analysis/
+        └── MemoryAnalyzer.java
 ```
 
 ## Multi-Module Structure

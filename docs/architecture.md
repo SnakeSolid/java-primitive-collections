@@ -23,7 +23,7 @@ All classes live under `ru.snake.primitive` and are split by collection type:
 | Package | Contents |
 |---------|----------|
 | `ru.snake.primitive.set` | `IntBitSet`, `IntSet`, `ObjectSet` |
-| `ru.snake.primitive.map` | `IntToIntMap`, `ObjectToIntMap`, `ObjectMap` |
+| `ru.snake.primitive.map` | `IntToIntMap`, `IntToObjectMap`, `ObjectToIntMap`, `ObjectMap` |
 
 The `set` and `map` packages keep related types grouped and make it easy to add new collection categories (e.g., `list`, `queue`) without cluttering a single package.
 
@@ -66,7 +66,7 @@ A compact hash set of `int` values. Each stored integer is split: the top 27 bit
 
 ### Hashing
 
-Uses the same hash function as `java.util.HashMap`: `h ^ (h >>> 16)`, then masks with `capacity - 1` (capacity is always a power of two).
+Uses a multi-shift mixing function: `h ^= (h >>> 20) ^ (h >>> 12); h ^= (h >>> 7) ^ (h >>> 4)`, then masks with `capacity - 1` (capacity is always a power of two).
 
 ### Collision Resolution
 
@@ -99,17 +99,16 @@ the first empty slot.
 
 ## ObjectSet
 
-A generic open-addressed hash set backed by `Object[]` with linear probing. Follows the same architecture as `ObjectToIntMap` but stores only elements (no associated values).
+A generic open-addressed hash set backed by `Object[]` with linear probing. Follows the same architecture as the map classes but stores only elements (no associated values).
 
 ### Internal Structure
 
-- `Object[] keys` — element storage (raw `Object[]`; generic type enforced at API boundary)
-- `IntBitSet occupied` — tracks which table slots hold live entries
+- `E[] keys` — element storage; a `null` entry denotes an empty slot
 - `int size` — number of live elements
 
 ### Hashing
 
-Same as `IntToIntMap`: `hashCode() ^ (hashCode() >>> 16)`, masked with `capacity - 1`.
+Same multi-shift mixing function as the map classes, masked with `capacity - 1`.
 
 ### Collision Resolution
 
@@ -148,7 +147,7 @@ Same pattern as `IntSet` — direct `Object[size]` allocation and `Arrays.copyOf
 
 ### Interface Compliance
 
-Implements `Set<E>`. Uses `Objects.equals()` for element comparison.
+Extends `AbstractSet<E>`. Uses direct `equals()` for element comparison (after a null guard).
 
 ## IntToIntMap
 
@@ -163,7 +162,7 @@ An open-addressed hash map using parallel `int[]` arrays for keys and values. Co
 
 ### Hashing
 
-Uses the same hash function as `java.util.HashMap`: `h ^ (h >>> 16)`, then masks with `capacity - 1` (capacity is always a power of two).
+Uses a multi-shift mixing function: `h ^= (h >>> 20) ^ (h >>> 12); h ^= (h >>> 7) ^ (h >>> 4)`, then masks with `capacity - 1` (capacity is always a power of two).
 
 ### Collision Resolution
 
@@ -190,14 +189,13 @@ A hybrid open-addressed hash map using `Object[]` for keys and `int[]` for value
 
 ### Internal Structure
 
-- `Object[] keys` — key storage (raw `Object[]`; generic type enforced at API boundary)
+- `Object[] keys` — key storage; a `null` entry denotes an empty slot
 - `int[] values` — parallel primitive value storage
-- `IntBitSet occupied` — tracks which table slots hold live entries
 - `int size` — number of live mappings
 
 ### Hashing
 
-Same as `IntToIntMap`: `hashCode() ^ (hashCode() >>> 16)`, masked with `capacity - 1`.
+Same multi-shift mixing function as the other map classes, masked with `capacity - 1`.
 
 ### Collision Resolution
 
@@ -241,22 +239,21 @@ Method names differ from `Map` interface to avoid erasure conflicts:
 
 Implements `Map<K, Integer>`. `null` keys throw `NullPointerException` in primitive methods;
 `null` keys handled gracefully in Map interface methods (return `null`/`false`).
-Uses `Objects.equals()` for key comparison to support custom `equals` implementations.
+Uses direct `equals()` for key comparison.
 
-## ObjectMap
+## IntToObjectMap
 
-A generic open-addressed hash map using parallel `Object[]` arrays for keys and values. Shares the same architecture as `IntToIntMap` but works with arbitrary key and value types.
+A hybrid open-addressed hash map using `int[]` for keys and `Object[]` for values. This avoids boxing overhead for the keys while allowing arbitrary Object types for values.
 
 ### Internal Structure
 
-- `Object[] keys` — key storage (raw `Object[]`; generic type enforced at API boundary)
-- `Object[] values` — parallel value storage
-- `IntBitSet occupied` — tracks which table slots hold live entries (reuses `IntBitSet` from the primitive collection)
+- `int[] keys` — key storage
+- `Object[] values` — parallel value storage; an `EMPTY_SLOT` sentinel object denotes an empty slot (allows occupancy tracking without a separate bitset)
 - `int size` — number of live mappings
 
 ### Hashing
 
-Same as `IntToIntMap`: `hashCode() ^ (hashCode() >>> 16)`, masked with `capacity - 1`.
+Same multi-shift mixing function as the other map classes, masked with `capacity - 1`.
 
 ### Collision Resolution
 
@@ -272,6 +269,60 @@ Same backward-shift deletion as `IntToIntMap` — clears the slot and shifts
 subsequent chain entries backward, eliminating the need for tombstones
 or full rehash.
 
+### Primitive Convenience Methods
+
+| Method | Returns | Notes |
+|--------|---------|-------|
+| `put(int, V)` | `V` | Previous value, or null if absent |
+| `get(int)` | `V` | Value, or null if absent |
+| `getOrDefault(int, V)` | `V` | Value or default |
+| `containsKey(int)` | `boolean` | Key presence check |
+| `containsValue(Object)` | `boolean` | Value presence check |
+| `remove(int)` | `V` | Removed value, or null if absent |
+
+These methods use primitive `int` keys to avoid boxing.
+
+### Null Handling
+
+- `null` values are **not supported** — `NullPointerException` is thrown for `put(int, V)`.
+- `null` keys are not applicable (keys are primitive `int`).
+- `get(nullKey)` / `getOrDefault(nullKey, default)` — not applicable for primitive key methods.
+- `containsKey(null)` (Map interface) returns `false`.
+- `containsValue(null)` returns `false`.
+- `remove(null)` (Map interface) returns `null`.
+
+### Interface Compliance
+
+Implements `Map<Integer, V>`. `null` values throw `NullPointerException`; `null` keys handled gracefully in Map interface methods (return `null`/`false`).
+
+## ObjectMap
+
+A generic open-addressed hash map using parallel `Object[]` arrays for keys and values. Shares the same architecture as the primitive maps but works with arbitrary key and value types.
+
+### Internal Structure
+
+- `K[] keys` — key storage; a `null` entry denotes an empty slot
+- `V[] values` — parallel value storage
+- `int size` — number of live mappings
+
+### Hashing
+
+Same multi-shift mixing function as the other map classes, masked with `capacity - 1`.
+
+### Collision Resolution
+
+Linear probing — identical to the other map classes.
+
+### Resizing
+
+Same load factor (0.75) and doubling strategy as the other map classes.
+
+### Removal Strategy
+
+Same backward-shift deletion as the other map classes — clears the slot and shifts
+subsequent chain entries backward, eliminating the need for tombstones
+or full rehash.
+
 ### Null Handling
 
 - `null` keys and `null` values are **not supported** — `NullPointerException` is thrown.
@@ -281,13 +332,13 @@ or full rehash.
 
 ### Interface Compliance
 
-Implements `Map<K, V>`. `null` keys and values throw `NullPointerException`. Uses `Objects.equals()` for key/value comparison to support custom `equals` implementations.
+Implements `Map<K, V>`. `null` keys and values throw `NullPointerException`. Uses direct `equals()` for key/value comparison.
 
 ## Shared Design Decisions
 
 - **Capacity**: Always a power of two, starting from a default of 16, up to a maximum of `1 << 30`.
 - **Load factor**: 0.75, matching `java.util.HashMap`.
-- **Occupancy tracking**: `IntBitSet` is used by all map classes and `ObjectSet`. `IntSet` instead uses a `-1` sentinel in its `keys` array to track slot occupancy, eliminating the extra `int[]` backing the bitset.
+- **Occupancy tracking**: `IntToIntMap` uses `IntBitSet` to track occupied slots. `IntSet` uses a `-1` sentinel in its `keys` array. `IntToObjectMap` uses an `EMPTY_SLOT` sentinel in its `values` array. `ObjectSet`, `ObjectToIntMap`, and `ObjectMap` use `null` as an empty-slot sentinel — no separate occupancy tracker needed.
 - **Removal**: All map and set classes use backward-shift deletion — cleared slots trigger a compacting scan that shifts subsequent chain entries backward, eliminating the need for tombstones or full rehash on removal.
 - **Thread safety**: None of the classes are thread-safe.
 - **IntSet compact encoding**: 27-bit key + 5-bit offset packed into hash table slots, allowing up to 32 elements per slot without extra indirection.

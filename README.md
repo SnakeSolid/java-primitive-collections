@@ -12,6 +12,7 @@ Lightweight collections for Java — no dependencies, no boxing overhead.
 | [`IntSet`](core/src/main/java/ru/snake/primitive/set/IntSet.java) | Compact hash set of `int` values; each slot packs 32 elements via bit encoding; implements `Set<Integer>` |
 | [`ObjectSet`](core/src/main/java/ru/snake/primitive/set/ObjectSet.java) | Generic hash set backed by `Object[]` with linear probing; implements `Set<E>` |
 | [`IntToIntMap`](core/src/main/java/ru/snake/primitive/map/IntToIntMap.java) | HashMap from `int` to `int` with linear probing; implements `Map<Integer, Integer>` |
+| [`IntToObjectMap`](core/src/main/java/ru/snake/primitive/map/IntToObjectMap.java) | HashMap from `int` to `Object` with linear probing; implements `Map<Integer, V>` |
 | [`ObjectToIntMap`](core/src/main/java/ru/snake/primitive/map/ObjectToIntMap.java) | HashMap from `Object` to `int` with linear probing; implements `Map<K, Integer>` |
 | [`ObjectMap`](core/src/main/java/ru/snake/primitive/map/ObjectMap.java) | Generic HashMap from `K` to `V` with linear probing; implements `Map<K, V>` |
 
@@ -43,6 +44,11 @@ System.out.println(map.get(1));  // 100
 ObjectToIntMap<String> map3 = new ObjectToIntMap<>();
 map3.putInt("counter", 42);
 System.out.println(map3.getInt("counter")); // 42
+
+// int keys with object values
+IntToObjectMap<String> map4 = new IntToObjectMap<>();
+map4.put(42, "answer");
+System.out.println(map4.get(42)); // answer
 
 // Generic object-to-object map
 ObjectMap<String, Person> map2 = new ObjectMap<>();
