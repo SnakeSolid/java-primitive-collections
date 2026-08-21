@@ -2,7 +2,7 @@
 
 ## Overview
 
-The library provides primitive and generic collection implementations: sets and maps. The primitive types avoid the overhead of boxing `int` to `Integer`. The `IntSet` uses a compact bit-packing scheme where each hash slot stores up to 32 elements. Map classes implement their respective `java.util` interfaces for interoperability. Set classes implement `java.util.Set` similarly.
+The library provides primitive and generic collection implementations: lists, sets, and maps. The primitive types avoid the overhead of boxing `int` to `Integer`. The `IntList` uses a compact `int[]` array. The `IntSet` uses a compact bit-packing scheme where each hash slot stores up to 32 elements. Map classes implement their respective `java.util` interfaces for interoperability. Set classes implement `java.util.Set` similarly.
 
 ## Project Structure
 
@@ -22,10 +22,62 @@ All classes live under `ru.snake.primitive` and are split by collection type:
 
 | Package | Contents |
 |---------|----------|
+| `ru.snake.primitive.list` | `IntList` |
 | `ru.snake.primitive.set` | `IntBitSet`, `IntSet`, `ObjectSet` |
 | `ru.snake.primitive.map` | `IntToIntMap`, `IntToObjectMap`, `ObjectToIntMap`, `ObjectMap` |
 
-The `set` and `map` packages keep related types grouped and make it easy to add new collection categories (e.g., `list`, `queue`) without cluttering a single package.
+The `list`, `set`, and `map` packages keep related types grouped and make it easy to add new collection categories (e.g., `queue`) without cluttering a single package.
+
+## IntList
+
+A resizable list of `int` values backed by a plain `int[]`. Implements `List<Integer>` for full interoperability with the Java Collections Framework, while avoiding boxing overhead for internal storage.
+
+### Internal Structure
+
+- `int[] data` — backing array storing elements contiguously
+- `int size` — number of live elements
+- `int modCount` — modification count for fail-fast iterators
+
+### Key Operations
+
+| Operation | Implementation |
+|-----------|---------------|
+| `get(i)` | Direct array access: `data[i]` |
+| `set(i, v)` | Direct write + `modCount++` |
+| `add(i, v)` | `System.arraycopy` shift + insert; grows array at 1.5x if full |
+| `remove(i)` | `System.arraycopy` shift + `size--` |
+| `addAll(i, c)` | `System.arraycopy` shift + iterate fill |
+| `removeAll(c)` / `retainAll(c)` | Single-pass compacting copy ("write" pointer) |
+| `iterator()` | Custom `IntListIterator` walks the array; supports `remove()`, `add()`, `set()` |
+| `listIterator(i)` | Same iterator, starting at index `i`; supports forward and backward traversal |
+
+### Resizing
+
+Default initial capacity is 10. When the array is full, it grows by 1.5x (`oldCapacity + (oldCapacity >> 1)`), matching `java.util.ArrayList`. Overflow to `Integer.MAX_VALUE` is handled.
+
+### Primitive Convenience Methods
+
+| Method | Returns | Notes |
+|--------|---------|-------|
+| `getInt(int)` | `int` | Element at index, no boxing |
+| `setInt(int, int)` | `int` | Previous value at index |
+| `addInt(int)` | `boolean` | Append value (always `true`) |
+| `insertInt(int, int)` | `void` | Insert value at index |
+
+These use primitive `int` return/parameter types to avoid unnecessary boxing.
+
+### Null Handling
+
+- `null` elements are **not supported** — `NullPointerException` is thrown for `add`, `set`, `addAll`.
+- `contains(null)` / `remove(null)` return `false`.
+
+### Interface Compliance
+
+Extends `AbstractList<Integer>` and implements `RandomAccess`. Provides `ListIterator` with full `add`/`set`/`remove` support. Fail-fast iterators detect concurrent structural modifications via `modCount`.
+
+### Iterators
+
+Custom inner-class `IntListIterator` implements `ListIterator<Integer>`. Supports forward/backward traversal, `remove()`, `add()`, `set()`. After `add()` or `remove()`, the iterator re-syncs its `expectedModCount` to remain valid for further operations.
 
 ## IntBitSet
 

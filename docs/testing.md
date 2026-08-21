@@ -8,6 +8,7 @@ JUnit Jupiter 5.10.2. Run with `./mvnw test` (executed in the `core` module).
 
 | Class | Tests |
 |-------|-------|
+| `IntListTest` | 74 |
 | `IntBitSetTest` | 49 |
 | `IntSetTest` | 55 |
 | `IntSetShiftTest` | 12 |
@@ -19,7 +20,7 @@ JUnit Jupiter 5.10.2. Run with `./mvnw test` (executed in the `core` module).
 | `ObjectMapShiftTest` | 15 |
 | `ObjectToIntMapTest` | 121 |
 | `ObjectToIntMapShiftTest` | 15 |
-| **Total** | **645** |
+| **Total** | **719** |
 
 ## Coverage Goals
 
@@ -69,6 +70,7 @@ The benchmark suite is split into two groups:
 
 | Benchmark | Class Under Test |
 |-----------|---------------|
+| `IntListBenchmark` | `IntList` |
 | `IntBitSetBenchmark` | `IntBitSet` |
 | `IntSetBenchmark` | `IntSet` |
 | `ObjectSetBenchmark` | `ObjectSet<String>` |
@@ -80,6 +82,7 @@ The benchmark suite is split into two groups:
 
 | Benchmark | JDK Class |
 |-----------|----------|
+| `JavaIntListBenchmark` | `ArrayList<Integer>` / `List<Integer>` |
 | `JavaIntSetBenchmark` | `HashSet<Integer>` / `Set<Integer>` |
 | `JavaStringSetBenchmark` | `HashSet<String>` / `Set<String>` |
 | `JavaIntMapBenchmark` | `HashMap<Integer, Integer>` / `Map<Integer, Integer>` |
@@ -89,6 +92,20 @@ The benchmark suite is split into two groups:
 All benchmarks share a common configuration inherited from `JMHConfig` (throughput mode, 25% fill factor, capacities of 10 K / 100 K / 1 M). Setup helpers are centralized in `BenchmarkDataHelper`.
 
 ### Operations Benchmarked per Class
+
+**List classes (`IntList`, `ArrayList<Integer>`):**
+
+| Operation | Description |
+|-----------|-------------|
+| `get` | Random index read via `getInt()` (primitive, `IntList` only) |
+| `getBoxed` | Random index read via `get()` (boxed, `IntList` only) |
+| `setInt` | Random index write via `setInt()` (primitive, `IntList` only) |
+| `set` | Random index write via `set()` (boxed, `ArrayList` only) |
+| `addAppend` | Append 100 elements (uses `ThreadState`) |
+| `iterate` | Sequential scan via `getInt(i)` (primitive, `IntList` only) |
+| `iterateBoxed` | Enhanced for-each iteration (boxed, `IntList` only) |
+| `contains` | Linear scan for element not in list |
+| `iterateRemoveAll` | Iterator with `remove()` |
 
 **Set classes (`IntBitSet`, `IntSet`, `ObjectSet`):**
 

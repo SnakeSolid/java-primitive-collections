@@ -24,12 +24,59 @@ For memory footprint comparisons, see [Memory Benchmarks](./memory-benchmarks.md
 
 | Class | Java Reference | Avg Speedup | Winner On |
 |-------|---------------|-------------|-----------|
+| `IntList` | `ArrayList<Integer>` | **TBD** | get (primitive), add, iterate (primitive) |
 | `IntBitSet` | `HashSet<Integer>` | **4.3x** | iterate, containsAll, iterateRemoveAll |
 | `IntSet` | `HashSet<Integer>` | **1.4x** | add, iterate, containsAll |
 | `ObjectSet` | `HashSet<String>` | **1.0x** | add (small/medium), iterate, containsAll, remove (small) |
 | `IntToIntMap` | `HashMap<Integer, Integer>` | **2.3x** | put (5.5-8.2x), getAbsent (1M), remove (100K+) |
 | `ObjectToIntMap` | `HashMap<String, Integer>` | **0.9x** | put (1.1-2.5x), remove (10K) |
 | `ObjectMap` | `HashMap<String, String>` | **0.7x** | put (10K, ~1.1x), remove (10K) |
+
+## List Benchmarks
+
+### IntList vs ArrayList<Integer>
+
+| Operation | Capacity | IntList | ArrayList | Ratio |
+|---|---|---|---|---|
+| addAppend | 10 K | TBD | TBD | TBD |
+| addAppend | 100 K | TBD | TBD | TBD |
+| addAppend | 1 M | TBD | TBD | TBD |
+| contains | 10 K | TBD | TBD | TBD |
+| contains | 100 K | TBD | TBD | TBD |
+| contains | 1 M | TBD | TBD | TBD |
+| get | 10 K | TBD | TBD | TBD |
+| get | 100 K | TBD | TBD | TBD |
+| get | 1 M | TBD | TBD | TBD |
+| getBoxed | 10 K | TBD | TBD | TBD |
+| getBoxed | 100 K | TBD | TBD | TBD |
+| getBoxed | 1 M | TBD | TBD | TBD |
+| iterate | 10 K | TBD | TBD | TBD |
+| iterate | 100 K | TBD | TBD | TBD |
+| iterate | 1 M | TBD | TBD | TBD |
+| iterateBoxed | 10 K | TBD | TBD | TBD |
+| iterateBoxed | 100 K | TBD | TBD | TBD |
+| iterateBoxed | 1 M | TBD | TBD | TBD |
+| iterateRemoveAll | 10 K | TBD | TBD | TBD |
+| iterateRemoveAll | 100 K | TBD | TBD | TBD |
+| iterateRemoveAll | 1 M | TBD | TBD | TBD |
+| setInt | 10 K | TBD | TBD | TBD |
+| setInt | 100 K | TBD | TBD | TBD |
+| setInt | 1 M | TBD | TBD | TBD |
+
+**Operations:**
+
+| Operation | Description |
+|-----------|-------------|
+| `addAppend` | Append 100 elements (uses `ThreadState`) |
+| `contains` | Linear scan for element not in list |
+| `get` | Random index read via `getInt()` (primitive, no boxing) |
+| `getBoxed` | Random index read via `get()` (boxed, via `List` interface) |
+| `iterate` | Sequential scan via `getInt(i)` (primitive) |
+| `iterateBoxed` | Enhanced for-each iteration (boxed) |
+| `iterateRemoveAll` | Iterator with `remove()` -- clears the list |
+| `setInt` | Random index write via `setInt()` (primitive, uses `ThreadState`) |
+
+**Analysis:** `IntList` is expected to win on primitive operations (`getInt`, `setInt`, `addInt`) due to zero boxing overhead. Boxed operations (`getBoxed`, `iterateBoxed`) should be near parity with `ArrayList<Integer>` since both go through the same boxing/unboxing path. `contains` is a linear scan in both implementations.
 
 ## Set Benchmarks
 
@@ -197,6 +244,7 @@ For memory footprint comparisons, see [Memory Benchmarks](./memory-benchmarks.md
 
 | Scenario | Recommended Class | Why |
 |----------|-------------------|-----|
+| List of int values | `IntList` | TBD -- primitive get/set/add/iterate avoid boxing |
 | Bitset for non-negative integers | `IntBitSet` | 4.3x average speedup; up to 22x for containsAll, 21x for iteration |
 | Set of int values | `IntSet` | 1.4x average; 1.4-2.7x faster for writes, 2.1-4.5x for iteration |
 | Map of int-to-int | `IntToIntMap` | 2.3x average; 5.5-8.2x faster for writes at all sizes |

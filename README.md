@@ -8,6 +8,7 @@ Lightweight collections for Java — no dependencies, no boxing overhead.
 
 | Class | Description |
 |-------|-------------|
+| [`IntList`](core/src/main/java/ru/snake/primitive/list/IntList.java) | Resizable `List<Integer>` backed by `int[]`; implements `List<Integer>` and `RandomAccess` |
 | [`IntBitSet`](core/src/main/java/ru/snake/primitive/set/IntBitSet.java) | BitSet backed by `int[]`; implements `Set<Integer>` for non-negative integers |
 | [`IntSet`](core/src/main/java/ru/snake/primitive/set/IntSet.java) | Compact hash set of `int` values; each slot packs 32 elements via bit encoding; implements `Set<Integer>` |
 | [`ObjectSet`](core/src/main/java/ru/snake/primitive/set/ObjectSet.java) | Generic hash set backed by `Object[]` with linear probing; implements `Set<E>` |
@@ -19,6 +20,12 @@ Lightweight collections for Java — no dependencies, no boxing overhead.
 ## Quick Start
 
 ```java
+// Primitive int list
+IntList list = new IntList();
+list.addInt(10);
+list.addInt(20);
+System.out.println(list.getInt(0)); // 10
+
 // Primitive bit set
 IntBitSet set = new IntBitSet(1024);
 set.set(42);
