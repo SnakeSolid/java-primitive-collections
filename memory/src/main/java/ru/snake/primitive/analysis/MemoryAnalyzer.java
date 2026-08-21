@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.openjdk.jol.info.GraphLayout;
 
+import ru.snake.primitive.list.IntList;
 import ru.snake.primitive.map.IntToIntMap;
 import ru.snake.primitive.map.IntToObjectMap;
 import ru.snake.primitive.map.ObjectMap;
@@ -45,6 +46,7 @@ public final class MemoryAnalyzer {
 
 		for (int size : SIZES) {
 			printSizeSeparator(size);
+			measureLists(size);
 			measureSets(size);
 			measureMapsIntInt(size);
 			measureMapsIntObject(size);
@@ -53,6 +55,30 @@ public final class MemoryAnalyzer {
 		}
 
 		printFooter();
+	}
+
+	// ------------------------------------------------------------------
+	// List measurements
+	// ------------------------------------------------------------------
+
+	private static void measureLists(int size) {
+		printSection("LISTS");
+
+		List<Integer> values = generateInts(size);
+
+		IntList intList = new IntList();
+		for (int v : values) {
+			intList.add(v);
+		}
+
+		ArrayList<Integer> arrayList = new ArrayList<>(size);
+		for (int v : values) {
+			arrayList.add(v);
+		}
+
+		printCollection("IntList", intList, size);
+		printCollection("ArrayList<Integer>", arrayList, size);
+		printRow();
 	}
 
 	// ------------------------------------------------------------------
@@ -208,17 +234,21 @@ public final class MemoryAnalyzer {
 
 	private static List<Integer> generateInts(int count) {
 		List<Integer> list = new ArrayList<>(count);
+
 		for (int i = 0; i < count; i++) {
 			list.add(i);
 		}
+
 		return list;
 	}
 
 	private static List<String> generateStrings(int count) {
 		List<String> list = new ArrayList<>(count);
+
 		for (int i = 0; i < count; i++) {
 			list.add("key-" + i);
 		}
+
 		return list;
 	}
 
