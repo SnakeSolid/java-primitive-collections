@@ -24,13 +24,13 @@ For memory footprint comparisons, see [Memory Benchmarks](./memory-benchmarks.md
 
 | Class | Java Reference | Avg Speedup | Winner On |
 |-------|---------------|-------------|-----------|
-| `IntList` | `ArrayList<Integer>` | **2.1x** | get (2.2x), contains (0.7-6.7x), iterate (1.4-7.7x), setInt (6.8-7.5x), iterateRemoveAll (1.1x) |
-| `IntBitSet` | `HashSet<Integer>` | **4.1x** | iterate, containsAll, iterateRemoveAll |
-| `IntSet` | `HashSet<Integer>` | **1.4x** | add, containsAll, iterate |
-| `ObjectSet` | `HashSet<String>` | **1.0x** | add (small/medium), iterate, containsAll, remove (small) |
-| `IntToIntMap` | `HashMap<Integer, Integer>` | **3.0x** | put, getAbsent, getPresent, iterate, remove |
-| `ObjectToIntMap` | `HashMap<String, Integer>` | **1.3x** | put (0.9-2.5x), remove (10K) |
-| `ObjectMap` | `HashMap<String, String>` | **0.7x** | put (10K, ~1.1x), remove (10K) |
+| `IntList` | `ArrayList<Integer>` | **2.2x** | get (2.1-4.1x), contains (3.8-5.4x), iterate (3.5-7.7x), setInt (6.5-7.3x), iterateRemoveAll (1.1x) |
+| `IntBitSet` | `HashSet<Integer>` | **4.4x** | iterate (13-30x), containsAll (12-32x), iterateRemoveAll (13-17x) |
+| `IntSet` | `HashSet<Integer>` | **1.4x** | add (2.5-3.2x), containsAll (2.4-6.3x), iterate (2.2-5.1x) |
+| `ObjectSet` | `HashSet<String>` | **1.0x** | add (small, 2.1x), iterate (2.1-3.4x), containsAll (1.2-2.7x) |
+| `IntToIntMap` | `HashMap<Integer, Integer>` | **3.3x** | put (5.0-8.0x), getAbsent (2.2-34.1x), getPresent (2.1-3.2x), iterate (2.1-3.1x) |
+| `ObjectToIntMap` | `HashMap<String, Integer>` | **1.2x** | put (2.1-2.6x), remove (small, 1.4x) |
+| `ObjectMap` | `HashMap<String, String>` | **0.7x** | put (10K, ~1.0x), remove (10K, ~1.1x) |
 
 ## List Benchmarks
 
@@ -38,27 +38,27 @@ For memory footprint comparisons, see [Memory Benchmarks](./memory-benchmarks.md
 
 | Operation | Capacity | IntList | ArrayList | Ratio |
 |---|---|---|---|---|
-| contains | 10 K | 667.8 | 119.9 | 5.57x |
-| contains | 100 K | 66.7 | 16.6 | 4.03x |
-| contains | 1 M | 4.0 | 0.99 | 3.99x |
-| get | 10 K | 1779.4 | 796.0 | 2.24x |
-| get | 100 K | 1717.2 | 775.5 | 2.21x |
-| get | 1 M | 1668.9 | 773.8 | 2.16x |
-| getBoxed | 10 K | 1788.7 | 796.0 | 2.25x |
-| getBoxed | 100 K | 1704.0 | 775.5 | 2.20x |
-| getBoxed | 1 M | 1683.7 | 773.8 | 2.18x |
-| iterate | 10 K | 776.6 | 206.6 | 3.76x |
-| iterate | 100 K | 79.1 | 19.3 | 4.10x |
-| iterate | 1 M | 7.8 | 1.0 | 7.73x |
-| iterateBoxed | 10 K | 343.7 | 206.6 | 1.66x |
-| iterateBoxed | 100 K | 35.0 | 19.3 | 1.81x |
-| iterateBoxed | 1 M | 3.4 | 1.0 | 3.35x |
-| iterateRemoveAll | 10 K | 203169.5 | 184814.6 | 1.10x |
-| iterateRemoveAll | 100 K | 152660.3 | 140041.3 | 1.09x |
-| iterateRemoveAll | 1 M | 152730.6 | 137660.5 | 1.11x |
-| setInt | 10 K | 1098.2 | 146.7 | 7.49x |
-| setInt | 100 K | 1001.6 | 143.7 | 6.97x |
-| setInt | 1 M | 984.4 | 143.6 | 6.85x |
+| contains | 10 K | 661.1 | 123.7 | 5.35x |
+| contains | 100 K | 66.1 | 16.8 | 3.94x |
+| contains | 1 M | 3.8 | 1.0 | 3.82x |
+| get | 10 K | 1744.1 | 813.3 | 2.14x |
+| get | 100 K | 1674.5 | 590.9 | 2.83x |
+| get | 1 M | 1681.6 | 406.5 | 4.14x |
+| getBoxed | 10 K | 1751.3 | 813.3 | 2.15x |
+| getBoxed | 100 K | 1694.8 | 590.9 | 2.87x |
+| getBoxed | 1 M | 1674.8 | 406.5 | 4.12x |
+| iterate | 10 K | 753.6 | 216.7 | 3.48x |
+| iterate | 100 K | 78.5 | 19.9 | 3.95x |
+| iterate | 1 M | 7.8 | 1.0 | 7.66x |
+| iterateBoxed | 10 K | 345.8 | 216.7 | 1.60x |
+| iterateBoxed | 100 K | 34.4 | 19.9 | 1.73x |
+| iterateBoxed | 1 M | 3.4 | 1.0 | 3.37x |
+| iterateRemoveAll | 10 K | 202952.0 | 185798.7 | 1.09x |
+| iterateRemoveAll | 100 K | 152223.3 | 139410.0 | 1.09x |
+| iterateRemoveAll | 1 M | 152921.3 | 138204.8 | 1.11x |
+| setInt | 10 K | 1104.9 | 151.7 | 7.28x |
+| setInt | 100 K | 977.9 | 151.7 | 6.45x |
+| setInt | 1 M | 978.5 | 145.0 | 6.75x |
 
 **Operations:**
 
@@ -72,7 +72,7 @@ For memory footprint comparisons, see [Memory Benchmarks](./memory-benchmarks.md
 | `iterateRemoveAll` | Iterator with `remove()` -- clears the list |
 | `setInt` | Random index write via `setInt()` (primitive, uses `ThreadState`) |
 
-**Analysis:** `IntList` dominates across nearly all operations. Primitive `get` is ~2.2x faster than `ArrayList<Integer>`, and surprisingly `getBoxed` is also ~2.2x faster -- the contiguous array layout likely gives better cache performance than `ArrayList`'s `Object[]`. `setInt` is the standout at 6.9-7.5x faster. `contains` (linear scan) is 4.0-5.6x faster. Primitive `iterate` is 3.8-7.7x faster, scaling with capacity. Boxed `iterateBoxed` is 1.7-3.4x faster. Even `iterateRemoveAll` is 1.1x faster, showing the benefit of simpler internal structure.
+**Analysis:** `IntList` dominates across nearly all operations. Primitive `get` is ~2.1-4.1x faster than `ArrayList<Integer>`, scaling with capacity, and surprisingly `getBoxed` is also ~2.1-4.1x faster -- the contiguous array layout likely gives better cache performance than `ArrayList`'s `Object[]`. `setInt` is the standout at 6.5-7.3x faster. `contains` (linear scan) is 3.8-5.4x faster. Primitive `iterate` is 3.5-7.7x faster, scaling with capacity. Boxed `iterateBoxed` is 1.6-3.4x faster. Even `iterateRemoveAll` is 1.1x faster, showing the benefit of simpler internal structure.
 
 ## Set Benchmarks
 
@@ -80,79 +80,79 @@ For memory footprint comparisons, see [Memory Benchmarks](./memory-benchmarks.md
 
 | Operation | Capacity | IntBitSet | HashSet | Ratio |
 |---|---|---|---|---|
-| add | 10 K | 152.3 | 53.3 | 2.86x |
-| add | 100 K | 145.3 | 54.5 | 2.67x |
-| add | 1 M | 137.2 | 46.6 | 2.94x |
-| containsAbsent | 10 K | 214.3 | 237.5 | 0.90x |
-| containsAbsent | 100 K | 19.5 | 19.5 | 1.00x |
-| containsAbsent | 1 M | 1.5 | 1.4 | 1.09x |
-| containsAll | 10 K | 180.4 | 13.1 | 13.80x |
-| containsAll | 100 K | 16.5 | 1.5 | 10.75x |
-| containsAll | 1 M | 1.6 | 0.06 | 27.25x |
-| containsPresent | 10 K | 97.8 | 75.6 | 1.29x |
-| containsPresent | 100 K | 8.6 | 4.4 | 1.97x |
-| containsPresent | 1 M | 0.76 | 0.09 | 8.38x |
-| iterate | 10 K | 213.9 | 17.9 | 11.96x |
-| iterate | 100 K | 20.6 | 1.9 | 11.02x |
-| iterate | 1 M | 2.05 | 0.08 | 26.73x |
-| iterateRemoveAll | 10 K | 87.1 | 7.3 | 11.88x |
-| iterateRemoveAll | 100 K | 9.3 | 0.67 | 13.74x |
-| iterateRemoveAll | 1 M | 0.92 | 0.07 | 12.91x |
-| remove | 10 K | 58.6 | 56.0 | 1.05x |
-| remove | 100 K | 7.9 | 5.6 | 1.43x |
-| remove | 1 M | 0.73 | 0.40 | 1.81x |
+| add | 10 K | 167.9 | 50.7 | 3.31x |
+| add | 100 K | 176.5 | 52.5 | 3.36x |
+| add | 1 M | 170.0 | 47.2 | 3.60x |
+| containsAbsent | 10 K | 220.9 | 236.8 | 0.93x |
+| containsAbsent | 100 K | 18.3 | 20.0 | 0.91x |
+| containsAbsent | 1 M | 1.5 | 1.5 | 0.97x |
+| containsAll | 10 K | 182.5 | 13.1 | 13.90x |
+| containsAll | 100 K | 18.9 | 1.5 | 12.34x |
+| containsAll | 1 M | 1.9 | 0.06 | 32.38x |
+| containsPresent | 10 K | 97.9 | 73.5 | 1.33x |
+| containsPresent | 100 K | 8.8 | 4.4 | 2.01x |
+| containsPresent | 1 M | 0.7 | 0.09 | 7.55x |
+| iterate | 10 K | 245.7 | 17.4 | 14.14x |
+| iterate | 100 K | 24.6 | 1.9 | 13.27x |
+| iterate | 1 M | 2.5 | 0.08 | 30.35x |
+| iterateRemoveAll | 10 K | 90.7 | 7.0 | 12.89x |
+| iterateRemoveAll | 100 K | 10.8 | 0.6 | 16.88x |
+| iterateRemoveAll | 1 M | 1.0 | 0.07 | 14.03x |
+| remove | 10 K | 60.8 | 30.5 | 2.00x |
+| remove | 100 K | 8.4 | 5.3 | 1.58x |
+| remove | 1 M | 0.8 | 0.4 | 1.99x |
 
-**Analysis:** `IntBitSet` dominates for iteration (11-27x faster) because it walks a compact bit array with no object overhead. `containsAll` shows dramatic improvement (10.8-27.3x). Add operations are ~2.7-2.9x faster. `containsAbsent` is near parity across all capacities (0.90-1.09x). `containsPresent` is competitive at 10K (1.29x) and becomes much faster at larger sizes (1.97x at 100K, 8.4x at 1M). `iterateRemoveAll` is 11.9-13.7x faster. Remove is 1.0-1.8x faster, improving with capacity.
+**Analysis:** `IntBitSet` dominates for iteration (13-30x faster) because it walks a compact bit array with no object overhead. `containsAll` shows dramatic improvement (12.3-32.4x). Add operations are ~3.3-3.6x faster. `containsAbsent` is near parity across all capacities (0.91-0.97x). `containsPresent` is competitive at 10K (1.33x) and becomes much faster at larger sizes (2.0x at 100K, 7.6x at 1M). `iterateRemoveAll` is 12.9-16.9x faster. Remove is 1.6-2.0x faster, improving with capacity.
 
 ### IntSet vs HashSet<Integer>
 
 | Operation | Capacity | IntSet | HashSet | Ratio |
 |---|---|---|---|---|
-| add | 10 K | 149.4 | 53.3 | 2.80x |
-| add | 100 K | 139.3 | 54.5 | 2.56x |
-| add | 1 M | 94.7 | 46.6 | 2.03x |
-| containsAbsent | 10 K | 172.8 | 237.5 | 0.73x |
-| containsAbsent | 100 K | 13.6 | 19.5 | 0.70x |
-| containsAbsent | 1 M | 0.76 | 1.4 | 0.55x |
-| containsAll | 10 K | 57.7 | 13.1 | 4.42x |
-| containsAll | 100 K | 3.5 | 1.5 | 2.33x |
-| containsAll | 1 M | 0.3 | 0.06 | 4.52x |
-| containsPresent | 10 K | 59.4 | 75.6 | 0.79x |
-| containsPresent | 100 K | 3.7 | 4.4 | 0.83x |
-| containsPresent | 1 M | 0.14 | 0.09 | 1.46x |
-| iterate | 10 K | 81.3 | 17.9 | 4.55x |
-| iterate | 100 K | 4.0 | 1.9 | 2.15x |
-| iterate | 1 M | 0.4 | 0.08 | 5.20x |
-| remove | 10 K | 70.7 | 56.0 | 1.26x |
-| remove | 100 K | 5.5 | 5.6 | 0.98x |
-| remove | 1 M | 0.38 | 0.40 | 0.94x |
+| add | 10 K | 153.5 | 50.7 | 3.03x |
+| add | 100 K | 132.6 | 52.5 | 2.53x |
+| add | 1 M | 148.9 | 47.2 | 3.16x |
+| containsAbsent | 10 K | 179.7 | 236.8 | 0.76x |
+| containsAbsent | 100 K | 13.9 | 20.0 | 0.70x |
+| containsAbsent | 1 M | 1.0 | 1.5 | 0.64x |
+| containsAll | 10 K | 59.8 | 13.1 | 4.55x |
+| containsAll | 100 K | 3.6 | 1.5 | 2.41x |
+| containsAll | 1 M | 0.4 | 0.06 | 6.33x |
+| containsPresent | 10 K | 62.6 | 73.5 | 0.85x |
+| containsPresent | 100 K | 4.4 | 4.4 | 0.99x |
+| containsPresent | 1 M | 0.1 | 0.09 | 1.16x |
+| iterate | 10 K | 86.3 | 17.4 | 4.95x |
+| iterate | 100 K | 4.2 | 1.9 | 2.20x |
+| iterate | 1 M | 0.4 | 0.08 | 5.13x |
+| remove | 10 K | 71.4 | 30.5 | 2.34x |
+| remove | 100 K | 5.9 | 5.3 | 1.10x |
+| remove | 1 M | 0.5 | 0.4 | 1.31x |
 
-**Analysis:** `IntSet` wins on add (2.0-2.8x) and iteration (2.1-5.2x). `containsAll` is 2.3-4.5x faster. `containsAbsent` and `containsPresent` are the weaker areas -- 55-83% of HashSet speed at larger capacities, likely because HashSet's lookup path is heavily optimized. Remove is 1.3x faster at 10K but near parity at larger sizes (0.94-0.98x).
+**Analysis:** `IntSet` wins on add (2.5-3.2x) and iteration (2.2-5.1x). `containsAll` is 2.4-6.3x faster. `containsAbsent` and `containsPresent` are the weaker areas -- 64-85% of HashSet speed, likely because HashSet's lookup path is heavily optimized. Remove is 2.3x faster at 10K and 1.1-1.3x at larger sizes.
 
 ### ObjectSet vs HashSet<String>
 
 | Operation | Capacity | ObjectSet | HashSet | Ratio |
 |---|---|---|---|---|
-| add | 10 K | 119.9 | 51.1 | 2.35x |
-| add | 100 K | 108.6 | 50.3 | 2.16x |
-| add | 1 M | 37.5 | 52.4 | 0.72x |
-| containsAbsent | 10 K | 110.0 | 219.8 | 0.50x |
-| containsAbsent | 100 K | 5.1 | 12.5 | 0.41x |
-| containsAbsent | 1 M | 0.1 | 0.29 | 0.33x |
-| containsAll | 10 K | 35.0 | 12.1 | 2.90x |
-| containsAll | 100 K | 2.9 | 1.2 | 2.49x |
-| containsAll | 1 M | 0.08 | 0.05 | 1.66x |
-| containsPresent | 10 K | 72.6 | 112.4 | 0.65x |
-| containsPresent | 100 K | 3.5 | 6.7 | 0.52x |
-| containsPresent | 1 M | 0.07 | 0.12 | 0.56x |
-| iterate | 10 K | 71.4 | 16.0 | 4.46x |
-| iterate | 100 K | 4.1 | 1.3 | 3.13x |
-| iterate | 1 M | 0.17 | 0.06 | 2.60x |
-| remove | 10 K | 52.9 | 61.3 | 0.86x |
-| remove | 100 K | 3.6 | 5.9 | 0.61x |
-| remove | 1 M | 0.12 | 0.21 | 0.56x |
+| add | 10 K | 107.3 | 51.5 | 2.08x |
+| add | 100 K | 63.7 | 49.2 | 1.29x |
+| add | 1 M | 26.6 | 46.5 | 0.57x |
+| containsAbsent | 10 K | 113.7 | 163.8 | 0.69x |
+| containsAbsent | 100 K | 5.0 | 12.5 | 0.40x |
+| containsAbsent | 1 M | 0.1 | 0.3 | 0.26x |
+| containsAll | 10 K | 31.6 | 11.7 | 2.70x |
+| containsAll | 100 K | 2.3 | 1.0 | 2.25x |
+| containsAll | 1 M | 0.06 | 0.05 | 1.17x |
+| containsPresent | 10 K | 61.1 | 102.7 | 0.60x |
+| containsPresent | 100 K | 3.0 | 6.4 | 0.47x |
+| containsPresent | 1 M | 0.05 | 0.1 | 0.46x |
+| iterate | 10 K | 54.4 | 16.2 | 3.36x |
+| iterate | 100 K | 3.4 | 1.4 | 2.46x |
+| iterate | 1 M | 0.1 | 0.07 | 2.05x |
+| remove | 10 K | 50.6 | 59.1 | 0.86x |
+| remove | 100 K | 6.3 | 5.4 | 1.17x |
+| remove | 1 M | 0.1 | 0.2 | 0.77x |
 
-**Analysis:** `ObjectSet` wins on add at small/medium sizes (2.2-2.4x) and on iteration (2.6-4.5x) due to simpler array layout. `containsAll` is 1.7-2.9x faster. However, `containsAbsent`, `containsPresent`, and `remove` (at larger sizes) are slower (33-86% of HashSet speed), likely because `Objects.equals()` adds overhead compared to HashSet's internal key comparison.
+**Analysis:** `ObjectSet` wins on add at small sizes (2.1x) and on iteration (2.1-3.4x) due to simpler array layout. `containsAll` is 1.2-2.7x faster. However, `containsAbsent`, `containsPresent`, and `remove` (at larger sizes) are slower (26-86% of HashSet speed), likely because `Objects.equals()` adds overhead compared to HashSet's internal key comparison.
 
 ## Map Benchmarks
 
@@ -160,79 +160,79 @@ For memory footprint comparisons, see [Memory Benchmarks](./memory-benchmarks.md
 
 | Operation | Capacity | IntToIntMap | HashMap | Ratio |
 |---|---|---|---|---|
-| getAbsent | 10 K | 442.1 | 199.0 | 2.22x |
-| getAbsent | 100 K | 43.3 | 13.8 | 3.14x |
-| getAbsent | 1 M | 1.28 | 0.09 | 13.90x |
-| getPresent | 10 K | 161.1 | 51.8 | 3.11x |
-| getPresent | 100 K | 7.8 | 3.7 | 2.09x |
-| getPresent | 1 M | 0.20 | 0.05 | 4.10x |
-| iterate | 10 K | 161.1 | 69.8 | 2.31x |
-| iterate | 100 K | 7.3 | 3.7 | 1.96x |
-| iterate | 1 M | 0.18 | 0.07 | 2.54x |
-| iterateEntries | 10 K | 29.5 | 69.8 | 0.42x |
-| iterateEntries | 100 K | 2.3 | 3.7 | 0.62x |
-| iterateEntries | 1 M | 0.28 | 0.07 | 3.92x |
-| keySetIterate | 10 K | 30.9 | 70.8 | 0.44x |
-| keySetIterate | 100 K | 2.5 | 3.8 | 0.66x |
-| keySetIterate | 1 M | 0.29 | 0.1 | 3.63x |
-| put | 10 K | 157.6 | 34.1 | 4.62x |
-| put | 100 K | 153.3 | 41.4 | 3.70x |
-| put | 1 M | 186.3 | 21.6 | 8.67x |
-| remove | 10 K | 75.0 | 137.0 | 0.55x |
-| remove | 100 K | 10.0 | 8.1 | 1.24x |
-| remove | 1 M | 0.82 | 0.86 | 0.96x |
+| getAbsent | 10 K | 445.4 | 207.3 | 2.15x |
+| getAbsent | 100 K | 45.1 | 13.4 | 3.36x |
+| getAbsent | 1 M | 3.8 | 0.1 | 34.14x |
+| getPresent | 10 K | 175.1 | 54.4 | 3.22x |
+| getPresent | 100 K | 8.5 | 4.0 | 2.12x |
+| getPresent | 1 M | 0.2 | 0.06 | 3.92x |
+| iterate | 10 K | 170.6 | 70.9 | 2.41x |
+| iterate | 100 K | 7.7 | 3.7 | 2.10x |
+| iterate | 1 M | 0.2 | 0.07 | 3.07x |
+| iterateEntries | 10 K | 32.0 | 70.9 | 0.45x |
+| iterateEntries | 100 K | 2.6 | 3.7 | 0.69x |
+| iterateEntries | 1 M | 0.3 | 0.07 | 3.88x |
+| keySetIterate | 10 K | 31.8 | 54.4 | 0.58x |
+| keySetIterate | 100 K | 2.6 | 3.7 | 0.70x |
+| keySetIterate | 1 M | 0.3 | 0.3 | 1.14x |
+| put | 10 K | 170.3 | 34.2 | 4.98x |
+| put | 100 K | 344.1 | 43.0 | 8.00x |
+| put | 1 M | 158.4 | 20.8 | 7.62x |
+| remove | 10 K | 81.8 | 150.5 | 0.54x |
+| remove | 100 K | 10.6 | 7.8 | 1.35x |
+| remove | 1 M | 1.1 | 0.9 | 1.26x |
 
-**Analysis:** `IntToIntMap` is the strongest map performer -- put is 3.7-8.7x faster (eliminating Integer boxing for both key and value). `getAbsent` is 2.2-13.9x faster, dominating at all sizes. `getPresent` is 2.1-4.1x faster. Native iteration is 2.0-2.5x faster. Entry iteration is slower at small sizes (0.4-0.6x) due to view-object overhead, but 3.9x faster at 1M. keySetIterate is 0.4-0.7x at small/medium sizes but flips to 3.6x at 1M. Remove is slower at 10K (0.55x) but 1.2x at 100K and near parity (0.96x) at 1M.
+**Analysis:** `IntToIntMap` is the strongest map performer -- put is 5.0-8.0x faster (eliminating Integer boxing for both key and value). `getAbsent` is 2.2-34.1x faster, dominating at all sizes especially at 1M. `getPresent` is 2.1-3.2x faster. Native iteration is 2.1-3.1x faster. Entry iteration is slower at small sizes (0.5-0.7x) due to view-object overhead, but 3.9x faster at 1M. keySetIterate is 0.6-0.7x at small/medium sizes and near parity (1.1x) at 1M. Remove is slower at 10K (0.54x) but 1.4x at 100K and 1.3x at 1M.
 
 ### ObjectToIntMap vs HashMap<String, Integer>
 
 | Operation | Capacity | ObjectToIntMap | HashMap | Ratio |
 |---|---|---|---|---|
-| getAbsent | 10 K | 167.2 | 315.8 | 0.53x |
-| getAbsent | 100 K | 8.3 | 17.1 | 0.49x |
-| getAbsent | 1 M | 0.24 | 0.43 | 0.56x |
-| getPresent | 10 K | 67.3 | 109.4 | 0.61x |
-| getPresent | 100 K | 3.5 | 7.4 | 0.47x |
-| getPresent | 1 M | 0.08 | 0.12 | 0.63x |
-| iterateEntries | 10 K | 39.8 | 63.7 | 0.63x |
-| iterateEntries | 100 K | 3.2 | 3.7 | 0.87x |
-| iterateEntries | 1 M | 0.31 | 0.17 | 1.84x |
-| keySetIterate | 10 K | 24.7 | 30.3 | 0.81x |
-| keySetIterate | 100 K | 2.4 | 2.6 | 0.91x |
-| keySetIterate | 1 M | 0.16 | 0.12 | 1.40x |
-| put | 10 K | 135.8 | 53.3 | 2.55x |
-| put | 100 K | 124.8 | 48.5 | 2.57x |
-| put | 1 M | 91.1 | 42.7 | 2.13x |
-| remove | 10 K | 171.1 | 111.6 | 1.53x |
-| remove | 100 K | 8.0 | 8.6 | 0.94x |
-| remove | 1 M | 0.10 | 0.20 | 0.49x |
+| getAbsent | 10 K | 141.9 | 288.1 | 0.49x |
+| getAbsent | 100 K | 7.8 | 14.9 | 0.53x |
+| getAbsent | 1 M | 0.2 | 0.4 | 0.49x |
+| getPresent | 10 K | 56.2 | 96.7 | 0.58x |
+| getPresent | 100 K | 3.3 | 7.0 | 0.48x |
+| getPresent | 1 M | 0.07 | 0.1 | 0.62x |
+| iterateEntries | 10 K | 37.0 | 62.1 | 0.60x |
+| iterateEntries | 100 K | 2.9 | 3.4 | 0.86x |
+| iterateEntries | 1 M | 0.3 | 0.2 | 1.49x |
+| keySetIterate | 10 K | 22.1 | 26.9 | 0.82x |
+| keySetIterate | 100 K | 2.1 | 2.0 | 1.06x |
+| keySetIterate | 1 M | 0.1 | 0.09 | 1.52x |
+| put | 10 K | 107.2 | 50.4 | 2.13x |
+| put | 100 K | 98.5 | 39.1 | 2.52x |
+| put | 1 M | 95.5 | 37.4 | 2.55x |
+| remove | 10 K | 144.8 | 103.3 | 1.40x |
+| remove | 100 K | 9.4 | 8.4 | 1.12x |
+| remove | 1 M | 0.1 | 0.2 | 0.34x |
 
-**Analysis:** `ObjectToIntMap` wins on writes -- put is 2.1-2.6x faster because it avoids boxing values. Remove is 1.5x faster at 10K but drops to 0.5-0.9x at larger sizes. Reads are ~47-63% of HashMap speed due to `Objects.equals()` overhead and the IntBitSet occupancy bitset check on each probe step. Entry iteration is 0.6-0.9x at small/medium sizes but flips to 1.8x at 1M. keySetIterate is near parity at small/medium sizes (0.8-0.9x) and 1.4x at 1M.
+**Analysis:** `ObjectToIntMap` wins on writes -- put is 2.1-2.6x faster because it avoids boxing values. Remove is 1.4x faster at 10K and 1.1x at 100K but drops to 0.3x at 1M. Reads are ~48-58% of HashMap speed due to `Objects.equals()` overhead and the IntBitSet occupancy bitset check on each probe step. Entry iteration is 0.6-0.9x at small/medium sizes but flips to 1.5x at 1M. keySetIterate is near parity at small/medium sizes (0.8-1.1x) and 1.5x at 1M.
 
 ### ObjectMap vs HashMap<String, String>
 
 | Operation | Capacity | ObjectMap | HashMap | Ratio |
 |---|---|---|---|---|
-| getAbsent | 10 K | 118.0 | 235.8 | 0.50x |
-| getAbsent | 100 K | 5.7 | 14.7 | 0.39x |
-| getAbsent | 1 M | 0.14 | 0.41 | 0.35x |
-| getPresent | 10 K | 66.3 | 108.1 | 0.61x |
-| getPresent | 100 K | 3.2 | 7.2 | 0.45x |
-| getPresent | 1 M | 0.05 | 0.09 | 0.50x |
-| iterateEntries | 10 K | 37.4 | 62.8 | 0.60x |
-| iterateEntries | 100 K | 2.5 | 3.0 | 0.83x |
-| iterateEntries | 1 M | 0.19 | 0.14 | 1.33x |
-| keySetIterate | 10 K | 39.2 | 59.8 | 0.66x |
-| keySetIterate | 100 K | 2.6 | 3.3 | 0.78x |
-| keySetIterate | 1 M | 0.18 | 0.15 | 1.18x |
-| put | 10 K | 32.2 | 30.6 | 1.05x |
-| put | 100 K | 25.6 | 26.8 | 0.96x |
-| put | 1 M | 16.3 | 25.5 | 0.64x |
-| remove | 10 K | 146.0 | 126.9 | 1.15x |
-| remove | 100 K | 8.0 | 8.5 | 0.93x |
-| remove | 1 M | 0.12 | 0.18 | 0.68x |
+| getAbsent | 10 K | 103.5 | 212.1 | 0.49x |
+| getAbsent | 100 K | 5.2 | 13.7 | 0.38x |
+| getAbsent | 1 M | 0.1 | 0.4 | 0.30x |
+| getPresent | 10 K | 58.2 | 101.0 | 0.58x |
+| getPresent | 100 K | 3.0 | 6.8 | 0.45x |
+| getPresent | 1 M | 0.04 | 0.09 | 0.48x |
+| iterateEntries | 10 K | 39.8 | 55.9 | 0.71x |
+| iterateEntries | 100 K | 2.3 | 3.1 | 0.73x |
+| iterateEntries | 1 M | 0.1 | 0.2 | 0.75x |
+| keySetIterate | 10 K | 36.6 | 56.0 | 0.65x |
+| keySetIterate | 100 K | 2.5 | 3.2 | 0.78x |
+| keySetIterate | 1 M | 0.1 | 0.2 | 0.72x |
+| put | 10 K | 28.6 | 29.3 | 0.98x |
+| put | 100 K | 23.4 | 24.9 | 0.94x |
+| put | 1 M | 16.1 | 25.2 | 0.64x |
+| remove | 10 K | 123.7 | 116.5 | 1.06x |
+| remove | 100 K | 8.2 | 8.1 | 1.02x |
+| remove | 1 M | 0.2 | 0.2 | 0.76x |
 
-**Analysis:** `ObjectMap` is the weakest performer vs HashMap. With full object keys and values, it loses the boxing advantage entirely. It's ~35-61% of HashMap throughput on reads. It's closest to HashMap on put at 10K (1.05x) and 100K (0.96x), and on remove at 10K (1.15x), but drops to 0.6-0.9x at larger sizes. The main advantage is simplicity (no Node objects) -- HashMap's `Node[]` + bin trees are heavily optimized by HotSpot.
+**Analysis:** `ObjectMap` is the weakest performer vs HashMap. With full object keys and values, it loses the boxing advantage entirely. It's ~30-58% of HashMap throughput on reads. It's closest to HashMap on put at 10K (0.98x) and 100K (0.94x), and on remove at 10K (1.1x), but drops to 0.6-0.8x at larger sizes. Iteration is 0.6-0.8x across all sizes. The main advantage is simplicity (no Node objects) -- HashMap's `Node[]` + bin trees are heavily optimized by HotSpot.
 
 ## Conclusions
 
@@ -240,20 +240,20 @@ For memory footprint comparisons, see [Memory Benchmarks](./memory-benchmarks.md
 
 | Scenario | Recommended Class | Why |
 |----------|-------------------|-----|
-| List of int values | `IntList` | 2.1x average speedup; 2.2x faster get, 6.9-7.5x faster setInt, 3.8-7.7x faster iterate |
-| Bitset for non-negative integers | `IntBitSet` | 4.1x average speedup; up to 27x for containsAll, 27x for iteration |
-| Set of int values | `IntSet` | 1.4x average; 2.0-2.8x faster for writes, 2.1-5.2x for iteration |
-| Map of int-to-int | `IntToIntMap` | 3.0x average; 3.7-8.7x faster for writes at all sizes |
-| Set of objects (iterative/bulk workloads) | `ObjectSet` | 1.0x average; 2.2-2.4x faster writes at small/medium size, 2.6-4.5x faster iteration |
-| Map with object keys, int values | `ObjectToIntMap` | 1.3x average; 2.1-2.6x faster writes; near parity on iteration at large sizes |
-| Generic map (small data) | `ObjectMap` | Within 5% of HashMap on put at 10K; simpler allocation model |
+| List of int values | `IntList` | 2.2x average speedup; 2.1-4.1x faster get, 6.5-7.3x faster setInt, 3.5-7.7x faster iterate |
+| Bitset for non-negative integers | `IntBitSet` | 4.4x average speedup; up to 32x for containsAll, 30x for iteration |
+| Set of int values | `IntSet` | 1.4x average; 2.5-3.2x faster for writes, 2.2-5.1x for iteration |
+| Map of int-to-int | `IntToIntMap` | 3.3x average; 5.0-8.0x faster for writes at all sizes |
+| Set of objects (iterative/bulk workloads) | `ObjectSet` | 1.0x average; 2.1x faster writes at small size, 2.1-3.4x faster iteration |
+| Map with object keys, int values | `ObjectToIntMap` | 1.2x average; 2.1-2.6x faster writes; near parity on iteration at large sizes |
+| Generic map (small data) | `ObjectMap` | Within 6% of HashMap on put at 10K; simpler allocation model |
 
 ### Design Trade-offs
 
 - **Primitive classes win on throughput** -- zero boxing eliminates GC pressure and indirect memory access.
-- **`IntBitSet` iteration is the standout** -- walking a compact bit array is ~27x faster than iterating `HashSet` Node objects. `containsAll` is up to 27x faster.
-- **`IntToIntMap` put is exceptional** -- 3.7-8.7x faster than HashMap, the largest speedup among all map operations, because both key and value avoid boxing.
-- **`IntList` is consistently fast** -- 2.2x faster get (even boxed), 6.9-7.5x faster setInt, and 3.8-7.7x faster primitive iteration. The contiguous `int[]` layout gives superior cache performance over `Object[]`.
+- **`IntBitSet` iteration is the standout** -- walking a compact bit array is ~30x faster than iterating `HashSet` Node objects. `containsAll` is up to 32x faster.
+- **`IntToIntMap` put is exceptional** -- 5.0-8.0x faster than HashMap, the largest speedup among all map operations, because both key and value avoid boxing.
+- **`IntList` is consistently fast** -- 2.1-4.1x faster get (even boxed), 6.5-7.3x faster setInt, and 3.5-7.7x faster primitive iteration. The contiguous `int[]` layout gives superior cache performance over `Object[]`.
 - **Object classes trade speed for simplicity** -- `ObjectSet` and `ObjectMap` use fewer object allocations (no `Node<K,V>` entries), but `Objects.equals()` and the `IntBitSet` occupancy tracker add per-probe overhead.
-- **ObjectSet lookups are slower** -- `containsAbsent` and `containsPresent` are 33-86% of HashSet speed, making it less suitable for read-heavy workloads.
+- **ObjectSet lookups are slower** -- `containsAbsent` and `containsPresent` are 26-86% of HashSet speed, making it less suitable for read-heavy workloads.
 - **Entry/keySet iteration views add overhead** at small sizes across all map types, but native iteration and large-size iteration are often competitive or faster.
