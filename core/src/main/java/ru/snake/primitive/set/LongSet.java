@@ -1,0 +1,726 @@
+package ru.snake.primitive.set;
+
+import java.util.AbstractSet;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Objects;
+
+/**
+ * A compact hash set of {@code int} values using {@code long[]} for the values
+ * array.
+ *
+ * <p>
+ * Each stored integer is encoded so that the top 26 bits serve as the hash map
+ * key and the bottom 6 bits select a single bit within the map value. One map
+ * slot ({@code long}) can therefore hold up to 64 elements that share the same
+ * 26-bit prefix.
+ * </p>
+ *
+ * <p>
+ * Slot occupancy is tracked directly in the {@code keys} array: a slot is
+ * occupied if {@code keys[index] != -1} and empty if {@code keys[index] == -1}.
+ * This sentinel is safe because valid keys have their lower 6 bits cleared
+ * ({@code element & 0xFFFF_FFC0}), so {@code -1} ({@code 0xFFFFFFFF}) can never
+ * be a valid key.
+ * </p>
+ *
+ * <p>
+ * Implements {@link java.util.Set<Integer>} so it can be used wherever a
+ * standard set is expected. {@code null} elements are not supported -
+ * {@link NullPointerException} will be thrown if one is passed.
+ * </p>
+ *
+ * <p>
+ * This class is not thread-safe.
+ * </p>
+ */
+public final class LongSet extends AbstractSet<Integer> {
+
+	/** Mask for the bottom 6 bits - the bit position within a slot value. */
+	private static final int BIT_MASK = 0x3F;
+
+	/** Mask for the top 26 bits - the map key. */
+	private static final int KEY_MASK = 0xFFFF_FFC0;
+
+	/** Initial table capacity. Always a power of two. */
+	private static final int DEFAULT_CAPACITY = 8;
+
+	/** Maximum table capacity. */
+	private static final int MAX_CAPACITY = 1 << 30;
+
+	/**
+	 * Load factor threshold - resize when occupied slots exceed this fraction.
+	 */
+	private static final float LOAD_FACTOR = 0.75f;
+
+	/**
+	 * Hash table keys - top 26 bits of each stored element. A value of
+	 * {@code -1} denotes an empty slot (safe sentinel because valid keys always
+	 * have their lower 6 bits cleared).
+	 */
+	private int[] keys;
+
+	/**
+	 * Hash table values - each {@code long} packs up to 64 elements. Bit
+	 * {@code j} being set means the element with key {@code keys[i]} and offset
+	 * {@code j} is present in the set.
+	 */
+	private long[] values;
+
+	/**
+	 * Tracks how many table slots are occupied (keys[i] != -1). Used for
+	 * load-factor checks and resizing.
+	 */
+	private int occupiedCount;
+
+	/** Number of distinct elements in the set. */
+	private int size;
+
+	// ------------------------------------------------------------------
+	// Constructors
+	// ------------------------------------------------------------------
+
+	/**
+	 * Constructs an empty set with the default initial capacity (8) and load
+	 * factor (0.75).
+	 */
+	public LongSet() {
+		this(DEFAULT_CAPACITY);
+	}
+
+	/**
+	 * Constructs an empty set whose initial table size is the smallest power of
+	 * two not less than {@code initialCapacity}.
+	 *
+	 * @param initialCapacity the initial capacity
+	 * @throws IllegalArgumentException if {@code initialCapacity} is negative
+	 */
+	public LongSet(int initialCapacity) {
+		if (initialCapacity < 0) {
+			throw new IllegalArgumentException("initialCapacity: " + initialCapacity);
+		}
+
+		int cap = tableSizeFor(initialCapacity);
+		keys = new int[cap];
+		values = new long[cap];
+		Arrays.fill(keys, -1);
+		occupiedCount = 0;
+	}
+
+	// ------------------------------------------------------------------
+	// Core helpers
+	// ------------------------------------------------------------------
+
+	/**
+	 * Extract the 26-bit key from an element value.
+	 */
+	private static int keyOf(int element) {
+		return element & KEY_MASK;
+	}
+
+	/**
+	 * Returns the bit mask for a given element's offset within its slot value.
+	 */
+	private static long bitOf(int element) {
+		return 1L << (element & BIT_MASK);
+	}
+
+	// ------------------------------------------------------------------
+	// Set<Integer> implementation
+	// ------------------------------------------------------------------
+
+	@Override
+	public boolean add(Integer element) {
+		Objects.requireNonNull(element, "element must not be null");
+
+		int key = keyOf(element);
+		long bit = bitOf(element);
+
+		int result = find(key);
+		if (result >= 0) {
+			int index = result;
+
+			if ((values[index] & bit) != 0) {
+				return false; // already present
+			}
+
+			values[index] |= bit;
+			size++;
+
+			return true;
+		}
+
+		// key not found – decode the first empty slot and insert directly
+		int index = -result - 1;
+		keys[index] = key;
+		values[index] = bit;
+		occupiedCount++;
+		size++;
+
+		// Resize if load factor exceeded
+		if (occupiedCount > (int) (keys.length * LOAD_FACTOR)) {
+			resize(keys.length * 2);
+		}
+
+		return true;
+	}
+
+	@Override
+	public boolean remove(Object element) {
+		if (!(element instanceof Integer)) {
+			return false;
+		}
+		int i = (Integer) element;
+
+		int key = keyOf(i);
+		long bit = bitOf(i);
+
+		int index = find(key);
+		if (index < 0) {
+			return false;
+		}
+
+		if ((values[index] & bit) == 0) {
+			return false;
+		}
+
+		values[index] &= ~bit;
+		size--;
+
+		// If no bits remain in this slot, clear it and shift subsequent
+		// probe-chain entries backward to keep chains intact without
+		// needing tombstones.
+		if (values[index] == 0) {
+			keys[index] = -1;
+			values[index] = 0;
+			occupiedCount--;
+			shiftBack(index);
+		}
+
+		return true;
+	}
+
+	@Override
+	public boolean contains(Object element) {
+		if (!(element instanceof Integer)) {
+			return false;
+		}
+
+		int i = (Integer) element;
+
+		int key = keyOf(i);
+		long bit = bitOf(i);
+
+		int index = find(key);
+		if (index < 0) {
+			return false;
+		}
+
+		return (values[index] & bit) != 0;
+	}
+
+	@Override
+	public int size() {
+		return size;
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return size == 0;
+	}
+
+	@Override
+	public void clear() {
+		Arrays.fill(values, 0);
+		Arrays.fill(keys, -1);
+		occupiedCount = 0;
+		size = 0;
+	}
+
+	@Override
+	public Iterator<Integer> iterator() {
+		return new LongSetIterator();
+	}
+
+	@Override
+	public Object[] toArray() {
+		Object[] result = new Object[size];
+		int idx = 0;
+
+		for (int i = 0; i < keys.length; i++) {
+			if (keys[i] == -1) {
+				continue;
+			}
+
+			int base = keys[i];
+			long word = values[i];
+
+			while (word != 0) {
+				int bit = Long.numberOfTrailingZeros(word);
+				result[idx++] = base + bit;
+				word &= ~(1L << bit);
+			}
+		}
+
+		return result;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T[] toArray(T[] a) {
+		Object[] collected = new Object[size];
+		int idx = 0;
+
+		for (int i = 0; i < keys.length; i++) {
+			if (keys[i] == -1) {
+				continue;
+			}
+
+			int base = keys[i];
+			long word = values[i];
+
+			while (word != 0) {
+				int bit = Long.numberOfTrailingZeros(word);
+				collected[idx++] = base + bit;
+				word &= ~(1L << bit);
+			}
+		}
+
+		if (a.length >= size) {
+			System.arraycopy(collected, 0, a, 0, size);
+
+			if (a.length > size) {
+				a[size] = null;
+			}
+
+			return a;
+		}
+
+		return (T[]) Arrays.copyOf(collected, size, a.getClass());
+	}
+
+	@Override
+	public boolean containsAll(Collection<?> c) {
+		for (Object e : c) {
+			if (!contains(e)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	@Override
+	public boolean addAll(Collection<? extends Integer> c) {
+		boolean changed = false;
+
+		for (Integer e : c) {
+			if (add(e)) {
+				changed = true;
+			}
+		}
+
+		return changed;
+	}
+
+	@Override
+	public boolean removeAll(Collection<?> c) {
+		boolean changed = false;
+
+		for (Object e : c) {
+			if (remove(e)) {
+				changed = true;
+			}
+		}
+
+		return changed;
+	}
+
+	@Override
+	public boolean retainAll(Collection<?> c) {
+		boolean changed = false;
+
+		// Scan slots in descending order. When a slot becomes completely
+		// empty, clear it and shift backward immediately. This is safe
+		// because we iterate from high to low, and shiftBack only moves
+		// entries from higher indices into the hole – those higher indices
+		// have already been processed in this loop.
+		for (int i = keys.length - 1; i >= 0; i--) {
+			if (keys[i] == -1) {
+				continue;
+			}
+
+			int base = keys[i];
+			long word = values[i];
+			long newWord = word;
+
+			while (word != 0) {
+				int bit = Long.numberOfTrailingZeros(word);
+				int element = base + bit;
+
+				if (!c.contains(element)) {
+					newWord &= ~(1L << bit);
+					size--;
+					changed = true;
+				}
+
+				word &= ~(1L << bit);
+			}
+
+			if (newWord == 0) {
+				keys[i] = -1;
+				values[i] = 0;
+				occupiedCount--;
+				shiftBack(i);
+			} else {
+				values[i] = newWord;
+			}
+		}
+		return changed;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		} else if (!(o instanceof java.util.Set<?>)) {
+			return false;
+		}
+
+		java.util.Set<?> that = (java.util.Set<?>) o;
+
+		if (that.size() != this.size()) {
+			return false;
+		}
+
+		return containsAll(that);
+	}
+
+	@Override
+	public int hashCode() {
+		int h = 0;
+
+		for (int i = 0; i < keys.length; i++) {
+			if (keys[i] == -1) {
+				continue;
+			}
+
+			int base = keys[i];
+			long word = values[i];
+
+			while (word != 0) {
+				int bit = Long.numberOfTrailingZeros(word);
+				h += Integer.hashCode(base + bit);
+				word &= ~(1L << bit);
+			}
+		}
+
+		return h;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append('[');
+		boolean first = true;
+
+		for (int i = 0; i < keys.length; i++) {
+			if (keys[i] == -1) {
+				continue;
+			}
+
+			int base = keys[i];
+			long word = values[i];
+
+			while (word != 0) {
+				int bit = Long.numberOfTrailingZeros(word);
+
+				if (!first) {
+					sb.append(", ");
+				}
+
+				sb.append(base + bit);
+				first = false;
+				word &= ~(1L << bit);
+			}
+		}
+
+		sb.append(']');
+		return sb.toString();
+	}
+
+	// ------------------------------------------------------------------
+	// Hashing & lookup - Java HashMap style
+	// ------------------------------------------------------------------
+
+	/**
+	 * Compute the hash for a key.
+	 */
+	private static int hash(int h) {
+		h ^= (h >>> 20) ^ (h >>> 12);
+		h ^= (h >>> 7) ^ (h >>> 4);
+		return h;
+	}
+
+	/**
+	 * Find the table index for the given key, or encode the first empty slot.
+	 *
+	 * <p>
+	 * Returns a non-negative index if the key is found. If not found, returns
+	 * {@code -(firstEmpty + 1)}, where {@code firstEmpty} is the index of the
+	 * first empty slot encountered during the linear probe. The caller can
+	 * recover the insertion point as {@code -returnValue - 1}.
+	 * </p>
+	 *
+	 * <p>
+	 * Linear-probe through occupied slots. A slot is occupied if
+	 * {@code keys[index] != -1} (the sentinel {@code -1} denotes empty slots;
+	 * this is safe because valid keys have their lower 6 bits cleared).
+	 * Backward-shift deletion ensures chains never have gaps, so the first
+	 * empty slot is the correct insertion point.
+	 * </p>
+	 */
+	private int find(int key) {
+		int mask = keys.length - 1;
+		int index = hash(key) & mask;
+
+		while (keys[index] != -1) {
+			if (keys[index] == key) {
+				return index;
+			}
+
+			index = (index + 1) & mask;
+		}
+
+		// key not found; index is the first empty slot
+		return -(index + 1);
+	}
+
+	/**
+	 * Resize the table to a new capacity.
+	 */
+	private void resize(int newCapacity) {
+		if (newCapacity > MAX_CAPACITY) {
+			return;
+		}
+		int[] oldKeys = keys;
+		long[] oldValues = values;
+
+		keys = new int[newCapacity];
+		values = new long[newCapacity];
+		Arrays.fill(keys, -1);
+		occupiedCount = 0;
+		size = 0;
+
+		int mask = newCapacity - 1;
+		for (int i = 0; i < oldKeys.length; i++) {
+			if (oldKeys[i] == -1) {
+				continue;
+			}
+
+			int k = oldKeys[i];
+			long v = oldValues[i];
+			int index = hash(k) & mask;
+
+			while (keys[index] != -1) {
+				index = (index + 1) & mask;
+			}
+
+			keys[index] = k;
+			values[index] = v;
+			occupiedCount++;
+			size += Long.bitCount(v);
+		}
+	}
+
+	/**
+	 * Knuth's gap-shifting deletion.
+	 *
+	 * <p>
+	 * After a slot has been cleared, scan forward through the probe chain. For
+	 * each candidate entry we check whether its home index falls within the
+	 * wrap-around interval {@code [gap, j]}. If it does, the entry "owns" the
+	 * gap region and must stay put. Otherwise it can be moved backwards into
+	 * the gap.
+	 * </p>
+	 *
+	 * <p>
+	 * {@code gap} always points to an empty slot. A separate scanner {@code j}
+	 * advances independently, so that non-shiftable entries are skipped rather
+	 * than overwritten.
+	 * </p>
+	 */
+	private void shiftBack(int gap) {
+		int mask = keys.length - 1;
+
+		for (int j = (gap + 1) & mask; keys[j] != -1; j = (j + 1) & mask) {
+			int rehash = hash(keys[j]) & mask;
+
+			// Does rehash fall in the wrap-around interval (gap .. j]
+			// (exclusive of gap, inclusive of j)?
+			// If it does, this entry cannot be shifted because moving it
+			// to 'gap' would place it before its home.
+			if (inInterval(gap, j, rehash, mask)) {
+				continue;
+			}
+
+			// Safe to shift into the gap
+			keys[gap] = keys[j];
+			values[gap] = values[j];
+			keys[j] = -1;
+			values[j] = 0;
+			gap = j;
+		}
+	}
+
+	/**
+	 * Returns true if {@code target} lies in the wrap-around interval
+	 * {@code (start .. end]} — exclusive of {@code start}, inclusive of
+	 * {@code end}.
+	 *
+	 * <p>
+	 * This answers the question: "does the candidate's home index fall strictly
+	 * after {@code start} when scanning forward (wrapping) to {@code end}"? If
+	 * so, shifting the candidate into {@code start} would place it before its
+	 * home, breaking the probe chain.
+	 * </p>
+	 */
+	private static boolean inInterval(int start, int end, int target, int mask) {
+		if (start < end) {
+			return target > start && target <= end;
+		} else if (start > end) {
+			return target > start || target <= end;
+		}
+
+		// start == end means we scanned the entire table without finding
+		// an empty slot — should not happen with load factor < 1.
+		return false;
+	}
+
+	/**
+	 * Returns the smallest power of two greater than or equal to {@code cap}.
+	 */
+	private static int tableSizeFor(int cap) {
+		int n = cap - 1;
+		n |= n >>> 1;
+		n |= n >>> 2;
+		n |= n >>> 4;
+		n |= n >>> 8;
+		n |= n >>> 16;
+		return n < 0 ? 1 : n >= MAX_CAPACITY ? MAX_CAPACITY : n + 1;
+	}
+
+	// ------------------------------------------------------------------
+	// Bulk operations
+	// ------------------------------------------------------------------
+
+	/**
+	 * Copies all elements from the given set into this set.
+	 */
+	public void putAll(LongSet other) {
+		for (int i = 0; i < other.keys.length; i++) {
+			if (other.keys[i] == -1) {
+				continue;
+			}
+
+			int base = other.keys[i];
+			long word = other.values[i];
+
+			while (word != 0) {
+				int bit = Long.numberOfTrailingZeros(word);
+				add(base + bit);
+				word &= ~(1L << bit);
+			}
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// Iterator
+	// ------------------------------------------------------------------
+
+	private final class LongSetIterator implements Iterator<Integer> {
+
+		/** Current table index being scanned. */
+		private int idx = 0;
+
+		/** Remaining bits in values[idx] that haven't been visited yet. */
+		private long remaining = 0;
+
+		/** Whether there is a next element. */
+		private boolean hasMore = false;
+
+		/** The next element value to return. */
+		private int nextValue = 0;
+
+		/**
+		 * The element returned by the last call to {@code next()}, or
+		 * {@code Integer.MIN_VALUE} if none.
+		 */
+		private int lastValue = Integer.MIN_VALUE;
+
+		LongSetIterator() {
+			findNext();
+		}
+
+		private void findNext() {
+			hasMore = false;
+
+			while (idx < keys.length) {
+				if (keys[idx] != -1 && values[idx] != 0) {
+					remaining = values[idx];
+					break;
+				}
+				idx++;
+			}
+
+			if (idx < keys.length) {
+				int bit = Long.numberOfTrailingZeros(remaining);
+				nextValue = keys[idx] + bit;
+				remaining &= ~(1L << bit);
+				hasMore = true;
+			}
+		}
+
+		@Override
+		public boolean hasNext() {
+			return hasMore;
+		}
+
+		@Override
+		public Integer next() {
+			if (!hasMore) {
+				throw new java.util.NoSuchElementException();
+			}
+
+			int result = nextValue;
+			lastValue = result;
+
+			if (remaining != 0) {
+				// More bits in this slot
+				int bit = Long.numberOfTrailingZeros(remaining);
+				nextValue = keys[idx] + bit;
+				remaining &= ~(1L << bit);
+				hasMore = true;
+			} else {
+				// Move to next slot
+				idx++;
+				findNext();
+			}
+
+			return result;
+		}
+
+		@Override
+		public void remove() {
+			if (lastValue == Integer.MIN_VALUE) {
+				throw new IllegalStateException();
+			}
+
+			LongSet.this.remove(lastValue);
+			remaining = 0;
+			findNext();
+			lastValue = Integer.MIN_VALUE;
+		}
+	}
+}

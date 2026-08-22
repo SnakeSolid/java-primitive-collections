@@ -8,10 +8,13 @@ JUnit Jupiter 5.10.2. Run with `./mvnw test` (executed in the `core` module).
 
 | Class | Tests |
 |-------|-------|
-| `IntListTest` | 74 |
+| `IntListTest` | 73 |
 | `IntBitSetTest` | 49 |
 | `IntSetTest` | 55 |
 | `IntSetShiftTest` | 12 |
+| `LongSetTest` | 55 |
+| `LongSetShiftTest` | 12 |
+| `LongSetDebugTest` | 1 |
 | `ObjectSetTest` | 47 |
 | `IntToIntMapTest` | 98 |
 | `IntToIntMapShiftTest` | 16 |
@@ -20,7 +23,7 @@ JUnit Jupiter 5.10.2. Run with `./mvnw test` (executed in the `core` module).
 | `ObjectMapShiftTest` | 15 |
 | `ObjectToIntMapTest` | 121 |
 | `ObjectToIntMapShiftTest` | 15 |
-| **Total** | **719** |
+| **Total** | **770** |
 
 ## Coverage Goals
 
@@ -49,6 +52,17 @@ Each class should have tests for:
 - Table wrap-around during backward-shift.
 - Negative values, `Integer.MIN_VALUE`, `Integer.MAX_VALUE`.
 
+## LongSet-specific Tests
+
+- Packing 64 elements with the same 26-bit prefix into a single `long` slot.
+- Removing individual elements from a 64-bit packed slot without losing siblings.
+- Removing all elements from a 64-bit packed slot (slot is cleared, backward-shift runs).
+- Backward-shift deletion with `long[]` values — same probe chain logic as IntSet but using `Long.numberOfTrailingZeros`, `Long.bitCount`, `1L << bit`.
+- Split key chains with 64 elements per bucket.
+- `retainAll` triggering backward-shift for fully emptied slots.
+- Table wrap-around during backward-shift.
+- Stress test: 5 rounds of add 50 elements → remove half → verify → re-add half → clear.
+
 ## Conventions
 
 - Test class names: `{ClassName}Test`
@@ -73,6 +87,7 @@ The benchmark suite is split into two groups:
 | `IntListBenchmark` | `IntList` |
 | `IntBitSetBenchmark` | `IntBitSet` |
 | `IntSetBenchmark` | `IntSet` |
+| `LongSetBenchmark` | `LongSet` |
 | `ObjectSetBenchmark` | `ObjectSet<String>` |
 | `IntToIntMapBenchmark` | `IntToIntMap` |
 | `ObjectToIntMapBenchmark` | `ObjectToIntMap<String>` |
@@ -107,7 +122,7 @@ All benchmarks share a common configuration inherited from `JMHConfig` (throughp
 | `contains` | Linear scan for element not in list |
 | `iterateRemoveAll` | Iterator with `remove()` |
 
-**Set classes (`IntBitSet`, `IntSet`, `ObjectSet`):**
+**Set classes (`IntBitSet`, `IntSet`, `LongSet`, `ObjectSet`):**
 
 | Operation | Description |
 |-----------|-------------|
