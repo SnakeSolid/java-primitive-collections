@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
 class IntBitSetTest {
@@ -235,19 +236,19 @@ class IntBitSetTest {
 	}
 
 	// ------------------------------------------------------------------
-	// Word boundary tests (bits 31/32)
+	// Word boundary tests (bits 63/64)
 	// ------------------------------------------------------------------
 
 	@Test
 	void bitsAtWordBoundary() {
-		IntBitSet set = new IntBitSet(64);
-		set.set(31); // last bit in word 0
-		set.set(32); // first bit in word 1
-		assertTrue(set.get(31));
-		assertTrue(set.get(32));
+		IntBitSet set = new IntBitSet(128);
+		set.set(63); // last bit in word 0
+		set.set(64); // first bit in word 1
+		assertTrue(set.get(63));
+		assertTrue(set.get(64));
 		assertEquals(2, set.size());
-		set.clear(31);
-		assertFalse(set.get(31));
+		set.clear(63);
+		assertFalse(set.get(63));
 		assertEquals(1, set.size());
 	}
 

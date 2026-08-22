@@ -6,7 +6,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 /**
- * A set backed by an {@code int[]} where each array element stores 32 boolean
+ * A set backed by a {@code long[]} where each array element stores 64 boolean
  * values as individual bits. A bit set to {@code 1} means the corresponding
  * index is present in the set.
  *
@@ -18,10 +18,10 @@ import java.util.Set;
 public final class IntBitSet implements Set<Integer> {
 
 	/** Number of bits in one array element. */
-	private static final int WORD_BITS = 32;
+	private static final int WORD_BITS = 64;
 
 	/** Bit array. */
-	private int[] words;
+	private long[] words;
 
 	/** Total number of set bits. */
 	private int size;
@@ -42,7 +42,7 @@ public final class IntBitSet implements Set<Integer> {
 		}
 
 		this.capacity = capacity;
-		this.words = new int[wordCount(capacity)];
+		this.words = new long[wordCount(capacity)];
 	}
 
 	// ------------------------------------------------------------------
@@ -51,12 +51,12 @@ public final class IntBitSet implements Set<Integer> {
 
 	/** Word index for bit position {@code i}. */
 	private static int wordIndex(int i) {
-		return i >>> 5; // i / 32
+		return i >>> 6; // i / 64
 	}
 
 	/** Bit mask for bit position {@code i}. */
-	private static int bitMask(int i) {
-		return 1 << (i & 0x1F); // i % 32
+	private static long bitMask(int i) {
+		return 1L << (i & 0x3F); // i % 64
 	}
 
 	/** Returns true if bit {@code i} is set. */
@@ -66,7 +66,7 @@ public final class IntBitSet implements Set<Integer> {
 
 	/** Sets bit {@code i} to {@code true}. */
 	public void set(int i) {
-		int mask = bitMask(i);
+		long mask = bitMask(i);
 
 		if ((words[wordIndex(i)] & mask) == 0) {
 			words[wordIndex(i)] |= mask;
@@ -76,7 +76,7 @@ public final class IntBitSet implements Set<Integer> {
 
 	/** Sets bit {@code i} to {@code false}. */
 	public void clear(int i) {
-		int mask = bitMask(i);
+		long mask = bitMask(i);
 
 		if ((words[wordIndex(i)] & mask) != 0) {
 			words[wordIndex(i)] &= ~mask;
@@ -114,7 +114,7 @@ public final class IntBitSet implements Set<Integer> {
 			throw new IllegalArgumentException("element: " + element);
 		}
 
-		int mask = bitMask(element);
+		long mask = bitMask(element);
 
 		if ((words[wordIndex(element)] & mask) == 0) {
 			words[wordIndex(element)] |= mask;
@@ -137,7 +137,7 @@ public final class IntBitSet implements Set<Integer> {
 			return false;
 		}
 
-		int mask = bitMask(i);
+		long mask = bitMask(i);
 		if ((words[wordIndex(i)] & mask) != 0) {
 			words[wordIndex(i)] &= ~mask;
 			size--;
@@ -178,7 +178,7 @@ public final class IntBitSet implements Set<Integer> {
 		/**
 		 * Copy of the current word, progressively cleared as bits are visited.
 		 */
-		private int word = wordIdx < words.length ? words[wordIdx] : 0;
+		private long word = wordIdx < words.length ? words[wordIdx] : 0L;
 
 		/** The next element to return, or -1 if exhausted. */
 		private int next = findNext();
@@ -189,9 +189,9 @@ public final class IntBitSet implements Set<Integer> {
 		private int findNext() {
 			while (wordIdx < words.length) {
 				while (word != 0) {
-					int bit = Integer.numberOfTrailingZeros(word);
-					word &= ~(1 << bit);
-					int idx = (wordIdx << 5) + bit;
+					int bit = Long.numberOfTrailingZeros(word);
+					word &= ~(1L << bit);
+					int idx = (wordIdx << 6) + bit;
 
 					if (idx < capacity) {
 						return idx;
@@ -244,12 +244,12 @@ public final class IntBitSet implements Set<Integer> {
 		int idx = 0;
 
 		for (int w = 0; w < words.length; w++) {
-			int word = words[w];
+			long word = words[w];
 
 			while (word != 0) {
-				int bit = Integer.numberOfTrailingZeros(word);
-				result[idx++] = (w << 5) + bit;
-				word &= ~(1 << bit);
+				int bit = Long.numberOfTrailingZeros(word);
+				result[idx++] = (w << 6) + bit;
+				word &= ~(1L << bit);
 			}
 		}
 
@@ -263,12 +263,12 @@ public final class IntBitSet implements Set<Integer> {
 		int idx = 0;
 
 		for (int w = 0; w < words.length; w++) {
-			int word = words[w];
+			long word = words[w];
 
 			while (word != 0) {
-				int bit = Integer.numberOfTrailingZeros(word);
-				collected[idx++] = (w << 5) + bit;
-				word &= ~(1 << bit);
+				int bit = Long.numberOfTrailingZeros(word);
+				collected[idx++] = (w << 6) + bit;
+				word &= ~(1L << bit);
 			}
 		}
 
@@ -364,12 +364,12 @@ public final class IntBitSet implements Set<Integer> {
 		int h = 0;
 
 		for (int w = 0; w < words.length; w++) {
-			int word = words[w];
+			long word = words[w];
 
 			while (word != 0) {
-				int bit = Integer.numberOfTrailingZeros(word);
-				h += Integer.hashCode((w << 5) + bit);
-				word &= ~(1 << bit);
+				int bit = Long.numberOfTrailingZeros(word);
+				h += Integer.hashCode((w << 6) + bit);
+				word &= ~(1L << bit);
 			}
 		}
 
@@ -383,18 +383,18 @@ public final class IntBitSet implements Set<Integer> {
 		boolean first = true;
 
 		for (int w = 0; w < words.length; w++) {
-			int word = words[w];
+			long word = words[w];
 
 			while (word != 0) {
-				int bit = Integer.numberOfTrailingZeros(word);
+				int bit = Long.numberOfTrailingZeros(word);
 
 				if (!first) {
 					sb.append(", ");
 				}
 
-				sb.append((w << 5) + bit);
+				sb.append((w << 6) + bit);
 				first = false;
-				word &= ~(1 << bit);
+				word &= ~(1L << bit);
 			}
 		}
 
@@ -407,6 +407,6 @@ public final class IntBitSet implements Set<Integer> {
 	// ------------------------------------------------------------------
 
 	private static int wordCount(int capacity) {
-		return (capacity + WORD_BITS - 1) >>> 5;
+		return (capacity + WORD_BITS - 1) >>> 6;
 	}
 }
