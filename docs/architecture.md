@@ -175,9 +175,9 @@ Same load factor (0.75) and doubling strategy as the maps.
 
 ### Removal Strategy
 
-Same backward-shift deletion as the map classes — clears the slot and shifts
-subsequent chain entries backward, eliminating the need for tombstones
-or full rehash.
+Same Knuth's gap-shifting deletion as the map classes — clears the slot and
+compacts the probe chain with an independent scanner that skips non-shiftable
+entries, eliminating the need for tombstones or full rehash.
 
 ### Primitive Convenience Methods
 
@@ -230,9 +230,15 @@ When `size > capacity * 0.75`, the table doubles in size and all entries are reh
 ### Removal Strategy
 
 Removal clears the slot and shifts subsequent probe-chain entries backward
-(**backward-shift deletion**). Each entry is checked: if its original hash
-position would have probed through the vacated slot, it is moved one
-position back. This repeats until no more entries qualify for shifting.
+(**Knuth's gap-shifting deletion**). A gap pointer marks the empty slot, and
+a separate scanner `j` walks forward through the probe chain. For each
+candidate the scanner checks whether its home hash index falls in the wrap
+around interval `(gap..j]` (exclusive of gap, inclusive of j) using the
+`inInterval` helper. If so, the candidate "owns" that range and is skipped.
+Otherwise it is moved into the gap and the gap advances. The scanner always
+advances independently, so non-shiftable entries are skipped rather than
+halting the entire compaction. When an empty slot is reached, the chain is
+fully compacted.
 
 This keeps probe chains compact without needing tombstone markers or
 periodic cleanup. Lookup and insertion probe only live slots and stop at
@@ -262,9 +268,9 @@ Same load factor (0.75) and doubling strategy as `IntToIntMap`.
 
 ### Removal Strategy
 
-Same backward-shift deletion as `IntToIntMap` — clears the slot and shifts
-subsequent chain entries backward, eliminating the need for tombstones
-or full rehash.
+Same Knuth's gap-shifting deletion as `IntToIntMap` — clears the slot and
+compacts the probe chain with an independent scanner that skips non-shiftable
+entries, eliminating the need for tombstones or full rehash.
 
 ### Primitive Convenience Methods
 
@@ -320,9 +326,9 @@ Same load factor (0.75) and doubling strategy as `IntToIntMap`.
 
 ### Removal Strategy
 
-Same backward-shift deletion as `IntToIntMap` — clears the slot and shifts
-subsequent chain entries backward, eliminating the need for tombstones
-or full rehash.
+Same Knuth's gap-shifting deletion as `IntToIntMap` — clears the slot and
+compacts the probe chain with an independent scanner that skips non-shiftable
+entries, eliminating the need for tombstones or full rehash.
 
 ### Primitive Convenience Methods
 
@@ -374,9 +380,9 @@ Same load factor (0.75) and doubling strategy as the other map classes.
 
 ### Removal Strategy
 
-Same backward-shift deletion as the other map classes — clears the slot and shifts
-subsequent chain entries backward, eliminating the need for tombstones
-or full rehash.
+Same Knuth's gap-shifting deletion as the other map classes — clears the slot
+and compacts the probe chain with an independent scanner that skips
+non-shiftable entries, eliminating the need for tombstones or full rehash.
 
 ### Null Handling
 
@@ -394,7 +400,7 @@ Implements `Map<K, V>`. `null` keys and values throw `NullPointerException`. Use
 - **Capacity**: Always a power of two, starting from a default of 16, up to a maximum of `1 << 30`.
 - **Load factor**: 0.75, matching `java.util.HashMap`.
 - **Occupancy tracking**: `IntToIntMap` uses `IntBitSet` to track occupied slots. `IntSet` uses a `-1` sentinel in its `keys` array. `IntToObjectMap` uses an `EMPTY_SLOT` sentinel in its `values` array. `ObjectSet`, `ObjectToIntMap`, and `ObjectMap` use `null` as an empty-slot sentinel — no separate occupancy tracker needed.
-- **Removal**: All map and set classes use backward-shift deletion — cleared slots trigger a compacting scan that shifts subsequent chain entries backward, eliminating the need for tombstones or full rehash on removal.
+- **Removal**: All map and set classes use Knuth's gap-shifting deletion — a cleared slot triggers a compacting scan with an independent scanner `j` that skips non-shiftable entries (checked via `inInterval`), shifting eligible entries backward into the gap. This eliminates the need for tombstones or full rehash on removal.
 - **Thread safety**: None of the classes are thread-safe.
 - **IntSet compact encoding**: 27-bit key + 5-bit offset packed into hash table slots, allowing up to 32 elements per slot without extra indirection.
 - **Iterators**: All collections use custom inner-class iterators that walk internal arrays directly — no intermediate `ArrayList` allocation. Every iterator supports `remove()` by delegating to the collection's internal removal logic (which handles `shiftBack` and slot cleanup). After `remove()`, the iterator re-syncs its cursor from the last-removed position to account for any shifted entries.
