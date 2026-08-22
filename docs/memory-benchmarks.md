@@ -20,7 +20,7 @@ JOL-based retained memory analysis comparing each `primitive-collections` class 
 | Class | Java Reference | Per-element (bytes) | Savings |
 |-------|---------------|---------------------|---------|
 | `IntBitSet` | `HashSet<Integer>` | 0.13 | **99.8%** less |
-| `IntSet` | `HashSet<Integer>` | 0.42 | **99.2%** less |
+| `IntSet` | `HashSet<Integer>` | 0.31 | **99.4%** less |
 | `ObjectSet<Integer>` | `HashSet<Integer>` | 22.56 | **58.7%** less |
 | `ObjectSet<String>` | `HashSet<String>` | 54.56 | **36.9%** less |
 | `IntList` | `ArrayList<Integer>` | 5.63 | **71.9%** less |
@@ -47,11 +47,11 @@ JOL-based retained memory analysis comparing each `primitive-collections` class 
 | Collection | 10 | 100 | 1 000 | 10 000 |
 |---|---|---|---|---|
 | `IntBitSet` | 4.80 | 0.56 | 0.17 | **0.13** |
-| `IntSet` | 19.20 | 1.92 | 0.58 | **0.42** |
+| `IntSet` | 16.00 | 1.60 | 0.45 | **0.31** |
 | `ObjectSet<Integer>` | 26.40 | 26.64 | 24.23 | **22.56** |
 | `HashSet<Integer>` | 64.00 | 59.20 | 56.29 | **54.56** |
 
-**Analysis:** `IntBitSet` is the clear winner — at 0.13 bytes/element for 10K entries, it stores 32 values per `int` with no indirection. `IntSet` is also excellent at 0.42 bytes/element thanks to its 27+5 bit-packing scheme (up to 32 elements per hash slot). `ObjectSet<Integer>` uses 58.7% less memory than `HashSet<Integer>` (22.56 vs 54.56 bytes/element), mainly because it avoids JDK's `Node<K,V>` entry objects and uses flat arrays.
+**Analysis:** `IntBitSet` is the clear winner — at 0.13 bytes/element for 10K entries, it stores 32 values per `int` with no indirection. `IntSet` is also excellent at 0.31 bytes/element thanks to its 27+5 bit-packing scheme (up to 32 elements per hash slot). `ObjectSet<Integer>` uses 58.7% less memory than `HashSet<Integer>` (22.56 vs 54.56 bytes/element), mainly because it avoids JDK's `Node<K,V>` entry objects and uses flat arrays.
 
 ### String Sets
 
@@ -110,7 +110,7 @@ JOL-based retained memory analysis comparing each `primitive-collections` class 
 | Collection | Trend (10→10K) | Notes |
 |---|---|---|
 | `IntBitSet` | **Improves** (4.80→0.13) | Amortized overhead — the backing `int[]` grows proportionally to capacity, not element count, but the per-element cost drops as more bits are packed |
-| `IntSet` | **Improves** (19.20→0.42) | Fixed overhead of initial arrays is amortized; bit-packing efficiency increases with more elements per slot |
+| `IntSet` | **Improves** (16.00→0.31) | Fixed overhead of initial arrays is amortized; bit-packing efficiency increases with more elements per slot |
 | `ObjectSet<Integer>` | **Improves** (26.40→22.56) | Initial array overhead amortizes; at 100 elements the collection may have already resized once, adding overhead |
 | `IntList` | **Stable** (8.00→5.63) | Minimal fixed overhead — just `int[]` + `int size` — stays near 5 bytes/element at scale |
 | `HashSet<Integer>` | **Improves** (64.00→54.56) | JDK HashMap overhead amortizes similarly |
@@ -122,7 +122,7 @@ JOL-based retained memory analysis comparing each `primitive-collections` class 
 
 ### Small vs Large collections
 
-For **small collections (10-100 elements)**, all primitive collections have higher per-element overhead due to fixed minimum array sizes. `IntBitSet` and `IntSet` still win by large margins at small sizes because their absolute memory footprint is tiny (48 bytes and 192 bytes respectively for 10 elements). `IntList` is also efficient at 8 bytes/element for 10 elements compared to ArrayList's 24 bytes.
+For **small collections (10-100 elements)**, all primitive collections have higher per-element overhead due to fixed minimum array sizes. `IntBitSet` and `IntSet` still win by large margins at small sizes because their absolute memory footprint is tiny (48 bytes and 160 bytes respectively for 10 elements). `IntList` is also efficient at 8 bytes/element for 10 elements compared to ArrayList's 24 bytes.
 
 For **large collections (10 000+ elements)**, the advantages of primitive storage are maximized — `IntBitSet` reaches sub-byte per-element storage, `IntList` uses 3.5x less memory than `ArrayList<Integer>`, and `IntToIntMap` uses 5x less memory than `HashMap<Integer, Integer>`.
 
