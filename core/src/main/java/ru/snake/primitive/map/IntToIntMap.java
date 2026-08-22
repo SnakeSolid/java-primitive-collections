@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-
 import ru.snake.primitive.set.IntBitSet;
 
 /**
@@ -811,42 +810,67 @@ public final class IntToIntMap implements Map<Integer, Integer> {
 	}
 
 	/**
-	 * Shift probe-chain entries backward to fill the hole at {@code hole},
-	 * keeping chains intact without tombstones.
+	 * Knuth's gap-shifting deletion.
+	 *
+	 * <p>
+	 * After a slot has been cleared, scan forward through the probe chain. For
+	 * each candidate entry we check whether its home index falls within the
+	 * wrap-around interval {@code [gap, j]}. If it does, the entry "owns" the
+	 * gap region and must stay put. Otherwise it can be moved backwards into
+	 * the gap.
+	 * </p>
+	 *
+	 * <p>
+	 * {@code gap} always points to an empty slot. A separate scanner {@code j}
+	 * advances independently, so that non-shiftable entries are skipped rather
+	 * than overwritten.
+	 * </p>
 	 */
-	private void shiftBack(int hole) {
+	private void shiftBack(int gap) {
 		int mask = keys.length - 1;
 
-		while (true) {
-			int next = (hole + 1) & mask;
-			if (!occupied.get(next)) {
-				// Chain ends — nothing left to shift
-				break;
+		for (int j = (gap + 1) & mask; occupied.get(j); j = (j + 1) & mask) {
+			int rehash = hash(keys[j]) & mask;
+
+			// Does rehash fall in the wrap-around interval (gap .. j]
+			// (exclusive of gap, inclusive of j)?
+			// If it does, this entry cannot be shifted because moving it
+			// to 'gap' would place it before its home.
+			if (inInterval(gap, j, rehash, mask)) {
+				continue;
 			}
 
-			int key = keys[next];
-			int rehash = hash(key) & mask;
-
-			// The entry at 'next' can be shifted back into 'hole' iff its
-			// true hash position wraps through 'hole' before reaching 'next'.
-			if (distance(rehash, hole, mask) < distance(rehash, next, mask)) {
-				keys[hole] = key;
-				values[hole] = values[next];
-				occupied.set(hole);
-				occupied.clear(next);
-				hole = next;
-			} else {
-				break;
-			}
+			// Safe to shift into the gap
+			keys[gap] = keys[j];
+			values[gap] = values[j];
+			occupied.set(gap);
+			occupied.clear(j);
+			gap = j;
 		}
 	}
 
 	/**
-	 * Wrapping distance from {@code from} to {@code to} in a table of size
-	 * {@code mask + 1}.
+	 * Returns true if {@code target} lies in the wrap-around interval
+	 * {@code (start .. end]} — exclusive of {@code start}, inclusive of
+	 * {@code end}.
+	 *
+	 * <p>
+	 * This answers the question: "does the candidate's home index fall strictly
+	 * after {@code start} when scanning forward (wrapping) to {@code end}"? If
+	 * so, shifting the candidate into {@code start} would place it before its
+	 * home, breaking the probe chain.
+	 * </p>
 	 */
-	private static int distance(int from, int to, int mask) {
-		return (to - from) & mask;
+	private static boolean inInterval(int start, int end, int target, int mask) {
+		if (start < end) {
+			return target > start && target <= end;
+		} else if (start > end) {
+			return target > start || target <= end;
+		}
+
+		// start == end means we scanned the entire table without finding
+		// an empty slot — should not happen with load factor < 1.
+		return false;
 	}
 
 	// ------------------------------------------------------------------
