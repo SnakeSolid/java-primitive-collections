@@ -2,7 +2,7 @@
 
 ## Overview
 
-The library provides primitive and generic collection implementations: lists, sets, and maps. The primitive types avoid the overhead of boxing `int` to `Integer`. The `IntList` uses a compact `int[]` array. The `IntSet` uses a compact bit-packing scheme where each hash slot stores up to 32 elements. Map classes implement their respective `java.util` interfaces for interoperability. Set classes implement `java.util.Set` similarly.
+The library provides primitive and generic collection implementations: lists, sets, and maps. The primitive types avoid the overhead of boxing `int` to `Integer`. The `IntList` uses a compact `int[]` array. The `IntSet` uses a compact bit-packing scheme where each hash slot stores up to 64 elements. Map classes implement their respective `java.util` interfaces for interoperability. Set classes implement `java.util.Set` similarly.
 
 ## Project Structure
 
@@ -107,12 +107,12 @@ A BitSet that stores each boolean value as an individual bit in an `int[]`. Each
 
 ## IntSet
 
-A compact hash set of `int` values. Each stored integer is split: the top 27 bits serve as the hash map key and the bottom 5 bits select a single bit within the map value. One map slot (`int`) can therefore hold up to 32 elements that share the same 27-bit prefix.
+A compact hash set of `int` values. Each stored integer is split: the top 26 bits serve as the hash map key and the bottom 6 bits select a single bit within the map value. One map slot (`long`) can therefore hold up to 64 elements that share the same 26-bit prefix.
 
 ### Internal Structure
 
-- `int[] keys` — the top 27 bits of stored elements; a value of `-1` denotes an empty slot (safe sentinel because valid keys have their lower 5 bits cleared)
-- `int[] values` — packed bit words; each `int` holds up to 32 elements
+- `int[] keys` — the top 26 bits of stored elements; a value of `-1` denotes an empty slot (safe sentinel because valid keys have their lower 6 bits cleared)
+- `long[] values` — packed bit words; each `long` holds up to 64 elements
 - `int occupiedCount` — number of occupied slots (keys[i] != -1), used for load-factor checks
 - `int size` — number of distinct elements
 
@@ -151,47 +151,6 @@ the first empty slot.
 ### toArray
 
 `toArray()` allocates `Object[size]` and fills it directly — no intermediate `ArrayList`. `toArray(T[])` follows the `Collection` contract: reuses the caller's array if large enough (null-terminating at `a[size]` when oversized), or allocates a new correctly-typed array via `Arrays.copyOf`.
-
-## LongSet
-
-A compact hash set of `int` values that uses `long[]` internally. Each stored integer is split: the top 26 bits serve as the hash map key and the bottom 6 bits select a single bit within the map value. One map slot (`long`) can therefore hold up to 64 elements that share the same 26-bit prefix. This class exists to compare performance between `int[]` (IntSet) and `long[]` (LongSet) array storage.
-
-### Internal Structure
-
-- `int[] keys` — the top 26 bits of stored elements; a value of `-1` denotes an empty slot (safe sentinel because valid keys have their lower 6 bits cleared)
-- `long[] values` — packed bit words; each `long` holds up to 64 elements
-- `int occupiedCount` — number of occupied slots (keys[i] != -1), used for load-factor checks
-- `int size` — number of distinct elements
-- `BIT_MASK = 0x3F` (6 bits for bit position, 0–63)
-- `KEY_MASK = 0xFFFF_FFC0` (top 26 bits for key)
-- `DEFAULT_CAPACITY = 8` (vs IntSet's 16, since each slot holds 64 elements)
-
-### Hashing
-
-Uses the same multi-shift mixing function as IntSet: `h ^= (h >>> 20) ^ (h >>> 12); h ^= (h >>> 7) ^ (h >>> 4)`, then masks with `capacity - 1` (capacity is always a power of two).
-
-### Collision Resolution
-
-Linear probing — on collision, walk to the next slot (`(index + 1) & mask`) until an empty slot is found. Backward-shift on removal keeps chains compact without tombstones.
-
-### Resizing
-
-When the number of occupied slots exceeds `capacity * 0.75`, the table doubles in size and all entries are rehashed into the new table.
-
-### Removal Strategy
-
-Removal clears the bit from the packed `long`. If no bits remain in the slot, the slot is cleared and the probe chain is compacted via Knuth's gap-shifting algorithm (same as IntSet). A scanner walks forward from the gap, shifting candidates whose home index falls outside the (gap..j] interval. The scanner advances independently of the gap, so non-shiftable entries are skipped rather than overwritten.
-
-### Key Differences from IntSet
-
-| Aspect | IntSet | LongSet |
-|--------|--------|---------|
-| `values` type | `int[]` | `long[]` |
-| Elements per slot | 32 | 64 |
-| `BIT_MASK` | `0x1F` (5 bits) | `0x3F` (6 bits) |
-| `KEY_MASK` | `0xFFFFFFE0` (27 key bits) | `0xFFFF_FFC0` (26 key bits) |
-| `DEFAULT_CAPACITY` | 16 | 8 |
-| Bit operations | `int` (`1 << bit`, `Integer.bitCount`) | `long` (`1L << bit`, `Long.bitCount`) |
 
 ## ObjectSet
 

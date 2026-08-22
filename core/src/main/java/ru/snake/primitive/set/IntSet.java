@@ -10,17 +10,17 @@ import java.util.Objects;
  * A compact hash set of {@code int} values.
  *
  * <p>
- * Each stored integer is encoded so that the top 27 bits serve as the hash map
- * key and the bottom 5 bits select a single bit within the map value. One map
- * slot ({@code int}) can therefore hold up to 32 elements that share the same
- * 27-bit prefix.
+ * Each stored integer is encoded so that the top 26 bits serve as the hash map
+ * key and the bottom 6 bits select a single bit within the map value. One map
+ * slot ({@code long}) can therefore hold up to 64 elements that share the same
+ * 26-bit prefix.
  * </p>
  *
  * <p>
  * Slot occupancy is tracked directly in the {@code keys} array: a slot is
  * occupied if {@code keys[index] != -1} and empty if {@code keys[index] == -1}.
- * This sentinel is safe because valid keys have their lower 5 bits cleared
- * ({@code element & 0xFFFFFFE0}), so {@code -1} ({@code 0xFFFFFFFF}) can never
+ * This sentinel is safe because valid keys have their lower 6 bits cleared
+ * ({@code element & 0xFFFF_FFC0}), so {@code -1} ({@code 0xFFFFFFFF}) can never
  * be a valid key.
  * </p>
  *
@@ -36,14 +36,14 @@ import java.util.Objects;
  */
 public final class IntSet extends AbstractSet<Integer> {
 
-	/** Mask for the bottom 5 bits - the bit position within a slot value. */
-	private static final int BIT_MASK = 0x1F;
+	/** Mask for the bottom 6 bits - the bit position within a slot value. */
+	private static final int BIT_MASK = 0x3F;
 
-	/** Mask for the top 27 bits - the map key. */
-	private static final int KEY_MASK = 0xFFFFFFE0;
+	/** Mask for the top 26 bits - the map key. */
+	private static final int KEY_MASK = 0xFFFF_FFC0;
 
 	/** Initial table capacity. Always a power of two. */
-	private static final int DEFAULT_CAPACITY = 16;
+	private static final int DEFAULT_CAPACITY = 8;
 
 	/** Maximum table capacity. */
 	private static final int MAX_CAPACITY = 1 << 30;
@@ -54,18 +54,18 @@ public final class IntSet extends AbstractSet<Integer> {
 	private static final float LOAD_FACTOR = 0.75f;
 
 	/**
-	 * Hash table keys - top 27 bits of each stored element. A value of
+	 * Hash table keys - top 26 bits of each stored element. A value of
 	 * {@code -1} denotes an empty slot (safe sentinel because valid keys always
-	 * have their lower 5 bits cleared).
+	 * have their lower 6 bits cleared).
 	 */
 	private int[] keys;
 
 	/**
-	 * Hash table values - each {@code int} packs up to 32 elements. Bit
+	 * Hash table values - each {@code long} packs up to 64 elements. Bit
 	 * {@code j} being set means the element with key {@code keys[i]} and offset
 	 * {@code j} is present in the set.
 	 */
-	private int[] values;
+	private long[] values;
 
 	/**
 	 * Tracks how many table slots are occupied (keys[i] != -1). Used for
@@ -81,7 +81,7 @@ public final class IntSet extends AbstractSet<Integer> {
 	// ------------------------------------------------------------------
 
 	/**
-	 * Constructs an empty set with the default initial capacity (16) and load
+	 * Constructs an empty set with the default initial capacity (8) and load
 	 * factor (0.75).
 	 */
 	public IntSet() {
@@ -102,7 +102,7 @@ public final class IntSet extends AbstractSet<Integer> {
 
 		int cap = tableSizeFor(initialCapacity);
 		keys = new int[cap];
-		values = new int[cap];
+		values = new long[cap];
 		Arrays.fill(keys, -1);
 		occupiedCount = 0;
 	}
@@ -112,7 +112,7 @@ public final class IntSet extends AbstractSet<Integer> {
 	// ------------------------------------------------------------------
 
 	/**
-	 * Extract the 27-bit key from an element value.
+	 * Extract the 26-bit key from an element value.
 	 */
 	private static int keyOf(int element) {
 		return element & KEY_MASK;
@@ -121,8 +121,8 @@ public final class IntSet extends AbstractSet<Integer> {
 	/**
 	 * Returns the bit mask for a given element's offset within its slot value.
 	 */
-	private static int bitOf(int element) {
-		return 1 << (element & BIT_MASK);
+	private static long bitOf(int element) {
+		return 1L << (element & BIT_MASK);
 	}
 
 	// ------------------------------------------------------------------
@@ -134,7 +134,7 @@ public final class IntSet extends AbstractSet<Integer> {
 		Objects.requireNonNull(element, "element must not be null");
 
 		int key = keyOf(element);
-		int bit = bitOf(element);
+		long bit = bitOf(element);
 
 		int result = find(key);
 		if (result >= 0) {
@@ -173,7 +173,7 @@ public final class IntSet extends AbstractSet<Integer> {
 		int i = (Integer) element;
 
 		int key = keyOf(i);
-		int bit = bitOf(i);
+		long bit = bitOf(i);
 
 		int index = find(key);
 		if (index < 0) {
@@ -209,7 +209,7 @@ public final class IntSet extends AbstractSet<Integer> {
 		int i = (Integer) element;
 
 		int key = keyOf(i);
-		int bit = bitOf(i);
+		long bit = bitOf(i);
 
 		int index = find(key);
 		if (index < 0) {
@@ -253,12 +253,12 @@ public final class IntSet extends AbstractSet<Integer> {
 			}
 
 			int base = keys[i];
-			int word = values[i];
+			long word = values[i];
 
 			while (word != 0) {
-				int bit = Integer.numberOfTrailingZeros(word);
+				int bit = Long.numberOfTrailingZeros(word);
 				result[idx++] = base + bit;
-				word &= ~(1 << bit);
+				word &= ~(1L << bit);
 			}
 		}
 
@@ -277,12 +277,12 @@ public final class IntSet extends AbstractSet<Integer> {
 			}
 
 			int base = keys[i];
-			int word = values[i];
+			long word = values[i];
 
 			while (word != 0) {
-				int bit = Integer.numberOfTrailingZeros(word);
+				int bit = Long.numberOfTrailingZeros(word);
 				collected[idx++] = base + bit;
-				word &= ~(1 << bit);
+				word &= ~(1L << bit);
 			}
 		}
 
@@ -351,20 +351,20 @@ public final class IntSet extends AbstractSet<Integer> {
 			}
 
 			int base = keys[i];
-			int word = values[i];
-			int newWord = word;
+			long word = values[i];
+			long newWord = word;
 
 			while (word != 0) {
-				int bit = Integer.numberOfTrailingZeros(word);
+				int bit = Long.numberOfTrailingZeros(word);
 				int element = base + bit;
 
 				if (!c.contains(element)) {
-					newWord &= ~(1 << bit);
+					newWord &= ~(1L << bit);
 					size--;
 					changed = true;
 				}
 
-				word &= ~(1 << bit);
+				word &= ~(1L << bit);
 			}
 
 			if (newWord == 0) {
@@ -406,12 +406,12 @@ public final class IntSet extends AbstractSet<Integer> {
 			}
 
 			int base = keys[i];
-			int word = values[i];
+			long word = values[i];
 
 			while (word != 0) {
-				int bit = Integer.numberOfTrailingZeros(word);
+				int bit = Long.numberOfTrailingZeros(word);
 				h += Integer.hashCode(base + bit);
-				word &= ~(1 << bit);
+				word &= ~(1L << bit);
 			}
 		}
 
@@ -430,10 +430,10 @@ public final class IntSet extends AbstractSet<Integer> {
 			}
 
 			int base = keys[i];
-			int word = values[i];
+			long word = values[i];
 
 			while (word != 0) {
-				int bit = Integer.numberOfTrailingZeros(word);
+				int bit = Long.numberOfTrailingZeros(word);
 
 				if (!first) {
 					sb.append(", ");
@@ -441,7 +441,7 @@ public final class IntSet extends AbstractSet<Integer> {
 
 				sb.append(base + bit);
 				first = false;
-				word &= ~(1 << bit);
+				word &= ~(1L << bit);
 			}
 		}
 
@@ -475,7 +475,7 @@ public final class IntSet extends AbstractSet<Integer> {
 	 * <p>
 	 * Linear-probe through occupied slots. A slot is occupied if
 	 * {@code keys[index] != -1} (the sentinel {@code -1} denotes empty slots;
-	 * this is safe because valid keys have their lower 5 bits cleared).
+	 * this is safe because valid keys have their lower 6 bits cleared).
 	 * Backward-shift deletion ensures chains never have gaps, so the first
 	 * empty slot is the correct insertion point.
 	 * </p>
@@ -504,10 +504,10 @@ public final class IntSet extends AbstractSet<Integer> {
 			return;
 		}
 		int[] oldKeys = keys;
-		int[] oldValues = values;
+		long[] oldValues = values;
 
 		keys = new int[newCapacity];
-		values = new int[newCapacity];
+		values = new long[newCapacity];
 		Arrays.fill(keys, -1);
 		occupiedCount = 0;
 		size = 0;
@@ -519,7 +519,7 @@ public final class IntSet extends AbstractSet<Integer> {
 			}
 
 			int k = oldKeys[i];
-			int v = oldValues[i];
+			long v = oldValues[i];
 			int index = hash(k) & mask;
 
 			while (keys[index] != -1) {
@@ -529,7 +529,7 @@ public final class IntSet extends AbstractSet<Integer> {
 			keys[index] = k;
 			values[index] = v;
 			occupiedCount++;
-			size += Integer.bitCount(v);
+			size += Long.bitCount(v);
 		}
 	}
 
@@ -624,12 +624,12 @@ public final class IntSet extends AbstractSet<Integer> {
 			}
 
 			int base = other.keys[i];
-			int word = other.values[i];
+			long word = other.values[i];
 
 			while (word != 0) {
-				int bit = Integer.numberOfTrailingZeros(word);
+				int bit = Long.numberOfTrailingZeros(word);
 				add(base + bit);
-				word &= ~(1 << bit);
+				word &= ~(1L << bit);
 			}
 		}
 	}
@@ -644,7 +644,7 @@ public final class IntSet extends AbstractSet<Integer> {
 		private int idx = 0;
 
 		/** Remaining bits in values[idx] that haven't been visited yet. */
-		private int remaining = 0;
+		private long remaining = 0;
 
 		/** Whether there is a next element. */
 		private boolean hasMore = false;
@@ -674,9 +674,9 @@ public final class IntSet extends AbstractSet<Integer> {
 			}
 
 			if (idx < keys.length) {
-				int bit = Integer.numberOfTrailingZeros(remaining);
+				int bit = Long.numberOfTrailingZeros(remaining);
 				nextValue = keys[idx] + bit;
-				remaining &= ~(1 << bit);
+				remaining &= ~(1L << bit);
 				hasMore = true;
 			}
 		}
@@ -697,9 +697,9 @@ public final class IntSet extends AbstractSet<Integer> {
 
 			if (remaining != 0) {
 				// More bits in this slot
-				int bit = Integer.numberOfTrailingZeros(remaining);
+				int bit = Long.numberOfTrailingZeros(remaining);
 				nextValue = keys[idx] + bit;
-				remaining &= ~(1 << bit);
+				remaining &= ~(1L << bit);
 				hasMore = true;
 			} else {
 				// Move to next slot

@@ -56,21 +56,25 @@ final class BenchmarkDataHelper {
 	 */
 	static int[] sequentialIndices(int capacity) {
 		int[] indices = new int[capacity];
+
 		for (int i = 0; i < capacity; i++) {
 			indices[i] = i;
 		}
+
 		return indices;
 	}
 
 	/**
-	 * Build a sequential index array with spacing ({@code i * 32}) to avoid
-	 * hash slot collisions in 27-bit key hashing schemes.
+	 * Build a sequential index array with spacing ({@code i * 64}) to avoid
+	 * hash slot collisions in 26-bit key hashing schemes.
 	 */
 	static int[] spacedIndices(int capacity) {
 		int[] indices = new int[capacity];
+
 		for (int i = 0; i < capacity; i++) {
-			indices[i] = i * 32;
+			indices[i] = i * 64;
 		}
+
 		return indices;
 	}
 
@@ -80,9 +84,11 @@ final class BenchmarkDataHelper {
 	 */
 	static String[] stringKeys(int capacity) {
 		String[] keys = new String[capacity];
+
 		for (int i = 0; i < capacity; i++) {
 			keys[i] = "key_" + i;
 		}
+
 		return keys;
 	}
 }

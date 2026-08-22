@@ -10,7 +10,7 @@ Lightweight collections for Java — no dependencies, no boxing overhead.
 |-------|-------------|
 | [`IntList`](core/src/main/java/ru/snake/primitive/list/IntList.java) | Resizable `List<Integer>` backed by `int[]`; implements `List<Integer>` and `RandomAccess` |
 | [`IntBitSet`](core/src/main/java/ru/snake/primitive/set/IntBitSet.java) | BitSet backed by `int[]`; implements `Set<Integer>` for non-negative integers |
-| [`IntSet`](core/src/main/java/ru/snake/primitive/set/IntSet.java) | Compact hash set of `int` values; each slot packs 32 elements via bit encoding; implements `Set<Integer>` |
+| [`IntSet`](core/src/main/java/ru/snake/primitive/set/IntSet.java) | Compact hash set of `int` values; each slot packs 64 elements via bit encoding; implements `Set<Integer>` |
 | [`ObjectSet`](core/src/main/java/ru/snake/primitive/set/ObjectSet.java) | Generic hash set backed by `Object[]` with linear probing; implements `Set<E>` |
 | [`IntToIntMap`](core/src/main/java/ru/snake/primitive/map/IntToIntMap.java) | HashMap from `int` to `int` with linear probing; implements `Map<Integer, Integer>` |
 | [`IntToObjectMap`](core/src/main/java/ru/snake/primitive/map/IntToObjectMap.java) | HashMap from `int` to `Object` with linear probing; implements `Map<Integer, V>` |
@@ -31,7 +31,7 @@ IntBitSet set = new IntBitSet(1024);
 set.set(42);
 System.out.println(set.get(42)); // true
 
-// Compact int set — 32 values packed per hash slot
+// Compact int set — 64 values packed per hash slot
 IntSet intSet = new IntSet();
 intSet.add(100);
 intSet.add(200);

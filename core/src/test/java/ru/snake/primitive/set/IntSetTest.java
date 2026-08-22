@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
 class IntSetTest {
@@ -99,48 +100,49 @@ class IntSetTest {
 	}
 
 	// ------------------------------------------------------------------
-	// Compact encoding — 32 elements sharing a 27-bit prefix
+	// Compact encoding — 64 elements sharing a 26-bit prefix
 	// ------------------------------------------------------------------
 
 	@Test
-	void packs32ElementsWithSamePrefix() {
+	void packs64ElementsWithSamePrefix() {
 		IntSet set = new IntSet(8);
-		// All values 0x00000000 .. 0x0000001f share the same 27-bit key
-		for (int i = 0; i < 32; i++) {
+		// All values 0 .. 63 share the same 26-bit key (key = value &
+		// 0xFFFF_FFC0 = 0)
+		for (int i = 0; i < 64; i++) {
 			assertTrue(set.add(i), "should add " + i);
 		}
-		assertEquals(32, set.size());
-		for (int i = 0; i < 32; i++) {
+		assertEquals(64, set.size());
+		for (int i = 0; i < 64; i++) {
 			assertTrue(set.contains(i), "should contain " + i);
 		}
 	}
 
 	@Test
-	void removesOneOf32PackedElements() {
+	void removesOneOf64PackedElements() {
 		IntSet set = new IntSet(8);
-		for (int i = 0; i < 32; i++) {
+		for (int i = 0; i < 64; i++) {
 			set.add(i);
 		}
-		assertTrue(set.remove(15));
-		assertEquals(31, set.size());
-		assertFalse(set.contains(15));
+		assertTrue(set.remove(31));
+		assertEquals(63, set.size());
+		assertFalse(set.contains(31));
 		assertTrue(set.contains(0));
-		assertTrue(set.contains(31));
+		assertTrue(set.contains(63));
 	}
 
 	@Test
 	void removesAllPackedElementsWithSamePrefix() {
 		IntSet set = new IntSet(8);
-		for (int i = 0; i < 32; i++) {
+		for (int i = 0; i < 64; i++) {
 			set.add(i);
 		}
-		for (int i = 0; i < 32; i++) {
+		for (int i = 0; i < 64; i++) {
 			assertTrue(set.remove(i), "should remove " + i);
 		}
 		assertEquals(0, set.size());
 		assertTrue(set.isEmpty());
 
-		// After backward-shift, the table should be clean — add and verify
+		// After backward-shift, the table should be clean - add and verify
 		assertTrue(set.add(99));
 		assertTrue(set.contains(99));
 	}
@@ -150,22 +152,22 @@ class IntSetTest {
 		// When a slot is fully emptied and backward-shift runs,
 		// sibling elements that probed past this slot must remain findable.
 		IntSet set = new IntSet(8);
-		set.add(0x20);
-		set.add(0x40);
-		set.add(0x60);
+		set.add(64); // key=0x40, offset=0
+		set.add(128); // key=0x80, offset=0
+		set.add(192); // key=0xC0, offset=0
 
-		assertTrue(set.remove(0x40));
+		assertTrue(set.remove(128));
 		assertEquals(2, set.size());
-		assertTrue(set.contains(0x20));
-		assertTrue(set.contains(0x60));
-		assertFalse(set.contains(0x40));
+		assertTrue(set.contains(64));
+		assertTrue(set.contains(192));
+		assertFalse(set.contains(128));
 	}
 
 	@Test
 	void elementsWithDifferentPrefixes() {
 		IntSet set = new IntSet();
-		// 0x00000005 -> key 0x00000000, offset 5
-		// 0x00000025 -> key 0x00000020, offset 5
+		// 5 -> key 0, offset 5
+		// 0x20 + 5 = 37 -> key 0x20, offset 5
 		assertTrue(set.add(5));
 		assertTrue(set.add(0x20 + 5)); // 37
 		assertEquals(2, set.size());
@@ -573,10 +575,7 @@ class IntSetTest {
 				set.add(i);
 			}
 			for (int i = 0; i < 200; i++) {
-				assertTrue(
-					set.contains(i),
-					"round " + round + " should contain " + i
-				);
+				assertTrue(set.contains(i), "round " + round + " should contain " + i);
 			}
 			assertEquals(200, set.size(), "round " + round);
 			set.clear();

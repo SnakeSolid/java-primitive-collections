@@ -14,8 +14,8 @@ import org.junit.jupiter.api.Test;
  * Tests for backward-shift deletion in IntSet.
  *
  * <p>
- * These replace the old tombstone-specific tests and verify that probe chains
- * stay intact when elements are removed from the middle of chains.
+ * These verify that probe chains stay intact when elements are removed from the
+ * middle of chains.
  * </p>
  */
 class IntSetShiftTest {
@@ -23,46 +23,46 @@ class IntSetShiftTest {
 	@Test
 	void removeFromMiddleOfProbeChainKeepsSiblings() {
 		IntSet set = new IntSet(8);
-		set.add(0x20);
-		set.add(0x40);
-		set.add(0x60);
-		set.add(0x80);
+		set.add(64);
+		set.add(128);
+		set.add(192);
+		set.add(256);
 
-		assertTrue(set.remove(0x40));
+		assertTrue(set.remove(128));
 		assertEquals(3, set.size());
 
-		assertTrue(set.contains(0x20));
-		assertTrue(set.contains(0x60));
-		assertTrue(set.contains(0x80));
-		assertFalse(set.contains(0x40));
+		assertTrue(set.contains(64));
+		assertTrue(set.contains(192));
+		assertTrue(set.contains(256));
+		assertFalse(set.contains(128));
 	}
 
 	@Test
 	void removeFromBeginningOfProbeChainShiftsBack() {
 		IntSet set = new IntSet(8);
-		set.add(0x20);
-		set.add(0x40);
-		set.add(0x60);
+		set.add(64);
+		set.add(128);
+		set.add(192);
 
-		assertTrue(set.remove(0x20));
+		assertTrue(set.remove(64));
 		assertEquals(2, set.size());
 
-		assertTrue(set.contains(0x40));
-		assertTrue(set.contains(0x60));
-		assertFalse(set.contains(0x20));
+		assertTrue(set.contains(128));
+		assertTrue(set.contains(192));
+		assertFalse(set.contains(64));
 	}
 
 	@Test
 	void removeFromEndOfProbeChainDoesNotDisruptOthers() {
 		IntSet set = new IntSet(8);
-		set.add(0x20);
-		set.add(0x40);
-		set.add(0x60);
+		set.add(64);
+		set.add(128);
+		set.add(192);
 
-		assertTrue(set.remove(0x60));
+		assertTrue(set.remove(192));
 		assertEquals(2, set.size());
-		assertTrue(set.contains(0x20));
-		assertTrue(set.contains(0x40));
+		assertTrue(set.contains(64));
+		assertTrue(set.contains(128));
 	}
 
 	// ------------------------------------------------------------------
@@ -73,29 +73,29 @@ class IntSetShiftTest {
 	void splitKeyChainsSurviveRemovals() {
 		IntSet set = new IntSet(16);
 
-		set.add(32);
 		set.add(64);
-		set.add(96);
 		set.add(128);
-		set.add(160);
 		set.add(192);
-		set.add(224);
 		set.add(256);
+		set.add(320);
+		set.add(384);
+		set.add(448);
+		set.add(512);
 
-		assertTrue(set.remove(64));
 		assertTrue(set.remove(128));
-		assertTrue(set.remove(192));
+		assertTrue(set.remove(256));
+		assertTrue(set.remove(384));
 		assertEquals(5, set.size());
 
-		assertTrue(set.contains(32));
-		assertTrue(set.contains(96));
-		assertTrue(set.contains(160));
-		assertTrue(set.contains(224));
-		assertTrue(set.contains(256));
+		assertTrue(set.contains(64));
+		assertTrue(set.contains(192));
+		assertTrue(set.contains(320));
+		assertTrue(set.contains(448));
+		assertTrue(set.contains(512));
 
-		assertFalse(set.contains(64));
 		assertFalse(set.contains(128));
-		assertFalse(set.contains(192));
+		assertFalse(set.contains(256));
+		assertFalse(set.contains(384));
 	}
 
 	@Test
@@ -107,9 +107,9 @@ class IntSetShiftTest {
 		set.add(2);
 		set.add(3);
 		set.add(4);
-		set.add(32);
 		set.add(64);
-		set.add(96);
+		set.add(128);
+		set.add(192);
 
 		assertEquals(8, set.size());
 
@@ -120,9 +120,9 @@ class IntSetShiftTest {
 		assertTrue(set.contains(0));
 		assertTrue(set.contains(2));
 		assertTrue(set.contains(4));
-		assertTrue(set.contains(32));
 		assertTrue(set.contains(64));
-		assertTrue(set.contains(96));
+		assertTrue(set.contains(128));
+		assertTrue(set.contains(192));
 	}
 
 	@Test
@@ -156,18 +156,18 @@ class IntSetShiftTest {
 	@Test
 	void backwardShiftAfterRemovingAllPackedElements() {
 		IntSet set = new IntSet(8);
-		for (int i = 0; i < 32; i++) {
+		for (int i = 0; i < 64; i++) {
 			set.add(i);
 		}
-		set.add(32);
 		set.add(64);
+		set.add(128);
 
-		for (int i = 0; i < 32; i++) {
+		for (int i = 0; i < 64; i++) {
 			assertTrue(set.remove(i));
 		}
 		assertEquals(2, set.size());
-		assertTrue(set.contains(32));
 		assertTrue(set.contains(64));
+		assertTrue(set.contains(128));
 	}
 
 	// ------------------------------------------------------------------
@@ -177,21 +177,21 @@ class IntSetShiftTest {
 	@Test
 	void iteratorReflectsShiftedChains() {
 		IntSet set = new IntSet(8);
-		set.add(0x20);
-		set.add(0x40);
-		set.add(0x60);
-		set.add(0x80);
+		set.add(64);
+		set.add(128);
+		set.add(192);
+		set.add(256);
 
-		assertTrue(set.remove(0x40));
+		assertTrue(set.remove(128));
 
 		Set<Integer> collected = new HashSet<>();
 		for (Integer e : set) {
 			collected.add(e);
 		}
 		assertEquals(3, collected.size());
-		assertTrue(collected.contains(0x20));
-		assertTrue(collected.contains(0x60));
-		assertTrue(collected.contains(0x80));
+		assertTrue(collected.contains(64));
+		assertTrue(collected.contains(192));
+		assertTrue(collected.contains(256));
 	}
 
 	// ------------------------------------------------------------------
@@ -201,19 +201,19 @@ class IntSetShiftTest {
 	@Test
 	void retainAllTriggersBackwardShift() {
 		IntSet set = new IntSet(8);
-		set.add(32);
 		set.add(64);
-		set.add(96);
 		set.add(128);
-		set.add(160);
+		set.add(192);
+		set.add(256);
+		set.add(320);
 
-		assertTrue(set.retainAll(Set.of(32, 96, 160)));
+		assertTrue(set.retainAll(Set.of(64, 192, 320)));
 		assertEquals(3, set.size());
-		assertTrue(set.contains(32));
-		assertTrue(set.contains(96));
-		assertTrue(set.contains(160));
-		assertFalse(set.contains(64));
+		assertTrue(set.contains(64));
+		assertTrue(set.contains(192));
+		assertTrue(set.contains(320));
 		assertFalse(set.contains(128));
+		assertFalse(set.contains(256));
 	}
 
 	// ------------------------------------------------------------------
@@ -223,17 +223,17 @@ class IntSetShiftTest {
 	@Test
 	void addAfterRemovalReusesShiftedSlots() {
 		IntSet set = new IntSet(8);
-		set.add(0x20);
-		set.add(0x40);
-		set.add(0x60);
+		set.add(64);
+		set.add(128);
+		set.add(192);
 
-		assertTrue(set.remove(0x40));
-		assertTrue(set.add(0x40));
+		assertTrue(set.remove(128));
+		assertTrue(set.add(128));
 		assertEquals(3, set.size());
 
-		assertTrue(set.contains(0x20));
-		assertTrue(set.contains(0x40));
-		assertTrue(set.contains(0x60));
+		assertTrue(set.contains(64));
+		assertTrue(set.contains(128));
+		assertTrue(set.contains(192));
 	}
 
 	// ------------------------------------------------------------------
@@ -244,30 +244,28 @@ class IntSetShiftTest {
 	void shiftBackWorksAcrossTableWrapAround() {
 		IntSet set = new IntSet(16);
 
-		// Find values whose hashes land near the end of the table so that
+		// Values whose hashes land near the end of the table so that
 		// probe chains wrap around.
-		// hash(0) = 0, hash(16) = 16 (out of bounds for size-16, wraps to 0)
-		// We'll brute-force insert enough elements to trigger wrapping.
 		for (int i = 0; i < 12; i++) {
-			set.add(i * 16);
+			set.add(i * 64);
 		}
 		assertEquals(12, set.size());
 
 		// Verify all present
 		for (int i = 0; i < 12; i++) {
-			assertTrue(set.contains(i * 16), "should contain " + i * 16);
+			assertTrue(set.contains(i * 64), "should contain " + i * 64);
 		}
 
 		// Remove from the middle and verify the rest
 		for (int i = 0; i < 12; i++) {
 			if (i % 2 == 0) {
-				assertTrue(set.remove(i * 16));
+				assertTrue(set.remove(i * 64));
 			}
 		}
 		assertEquals(6, set.size());
 
 		for (int i = 0; i < 12; i++) {
-			int val = i * 16;
+			int val = i * 64;
 			if (i % 2 == 0) {
 				assertFalse(set.contains(val), "should not contain " + val);
 			} else {
@@ -277,7 +275,7 @@ class IntSetShiftTest {
 	}
 
 	// ------------------------------------------------------------------
-	// Stress — remove then re-add
+	// Stress - remove then re-add
 	// ------------------------------------------------------------------
 
 	@Test
