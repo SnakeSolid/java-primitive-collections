@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -126,26 +127,28 @@ class IntSetShiftTest {
 
 	@Test
 	void backwardShiftDoesNotCorruptAfterMultipleRemovals() {
-		IntSet set = new IntSet(16);
-		for (int i = 0; i < 20; i++) {
-			set.add(32 + i * 32);
-		}
-		assertEquals(20, set.size());
-
-		for (int i = 0; i < 20; i++) {
-			int val = 32 + i * 32;
-			if (i % 3 == 0) {
-				assertTrue(set.remove(val));
+		for (int gap : Arrays.asList(2, 3, 4, 5, 8, 16, 32, 64, 128, 256)) {
+			IntSet set = new IntSet(16);
+			for (int i = 0; i < 20; i++) {
+				set.add(gap + i * gap);
 			}
-		}
-		assertEquals(13, set.size());
+			assertEquals(20, set.size());
 
-		for (int i = 0; i < 20; i++) {
-			int val = 32 + i * 32;
-			if (i % 3 == 0) {
-				assertFalse(set.contains(val), "should not contain " + val);
-			} else {
-				assertTrue(set.contains(val), "should contain " + val);
+			for (int i = 0; i < 20; i++) {
+				int val = gap + i * gap;
+				if (i % 3 == 0) {
+					assertTrue(set.remove(val));
+				}
+			}
+			assertEquals(13, set.size());
+
+			for (int i = 0; i < 20; i++) {
+				int val = gap + i * gap;
+				if (i % 3 == 0) {
+					assertFalse(set.contains(val), "should not contain " + val);
+				} else {
+					assertTrue(set.contains(val), "should contain " + val);
+				}
 			}
 		}
 	}
